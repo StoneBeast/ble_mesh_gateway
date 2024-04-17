@@ -10,4 +10,5 @@
 
 #define CID_STONE 0x9942
 
+#define PROV_OWN_ADDR 0x0001
 #define COMP_DATA_PAGE_0 0x00;

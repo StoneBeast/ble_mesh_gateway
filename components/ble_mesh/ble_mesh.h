@@ -4,7 +4,7 @@
 #include "esp_err.h"
 #include "link_list.h"
 #include "mesh_config.h"
-#include "esp_ble_mesh_defs.h"
+// #include "esp_ble_mesh_defs.h"
 
 typedef struct app_key_node
 {
@@ -23,5 +23,7 @@ typedef struct dev_node_info_node
 typedef link_list_manager app_key_manager;
 
 esp_err_t ble_mesh_init(void);
+
+esp_err_t bluetooth_init(void);
 
 #endif

@@ -28,6 +28,7 @@
         "ble_mesh_utils.h": "c",
         "esp_ble_mesh_defs.h": "c",
         "mesh_config.h": "c",
-        "esp_ble_mesh_config_model_api.h": "c"
+        "esp_ble_mesh_config_model_api.h": "c",
+        "link_list.h": "c"
     }
 }

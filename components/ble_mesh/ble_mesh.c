@@ -13,6 +13,22 @@
 #include "esp_ble_mesh_config_model_api.h"
 #include "esp_ble_mesh_generic_model_api.h"
 
+#include <sdkconfig.h>
+
+#ifdef CONFIG_BT_BLUEDROID_ENABLED
+#include "esp_bt.h"
+#include "esp_bt_main.h"
+#include "esp_bt_device.h"
+#endif
+
+#ifdef CONFIG_BT_NIMBLE_ENABLED
+#include "nimble/nimble_port.h"
+#include "nimble/nimble_port_freertos.h"
+#include "host/ble_hs.h"
+#include "host/util/util.h"
+#include "console/console.h"
+#endif
+
 #define TAG "BLE_MESH_C"
 
 static app_key_manager *app_key_list = NULL;
@@ -67,6 +83,42 @@ static esp_ble_mesh_prov_t provision = {
     .flags = 0x00,
     .iv_index = 0x00,
 };
+
+esp_err_t bluetooth_init(void)
+{
+    esp_err_t ret;
+
+    ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
+
+    esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
+    ret = esp_bt_controller_init(&bt_cfg);
+    if (ret)
+    {
+        ESP_LOGE(TAG, "%s initialize controller failed", __func__);
+        return ret;
+    }
+
+    ret = esp_bt_controller_enable(ESP_BT_MODE_BLE);
+    if (ret)
+    {
+        ESP_LOGE(TAG, "%s enable controller failed", __func__);
+        return ret;
+    }
+    ret = esp_bluedroid_init();
+    if (ret)
+    {
+        ESP_LOGE(TAG, "%s init bluetooth failed", __func__);
+        return ret;
+    }
+    ret = esp_bluedroid_enable();
+    if (ret)
+    {
+        ESP_LOGE(TAG, "%s enable bluetooth failed", __func__);
+        return ret;
+    }
+
+    return ret;
+}
 
 static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
                                              esp_ble_mesh_prov_cb_param_t *param)
@@ -124,8 +176,8 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
         if (param->provisioner_add_app_key_comp.err_code == ESP_OK)
         {
             esp_err_t err = 0;
-            prov_key.app_idx = param->provisioner_add_app_key_comp.app_idx;
-            err = esp_ble_mesh_provisioner_bind_app_key_to_local_model(PROV_OWN_ADDR, prov_key.app_idx,
+            get_app_key_node(app_key_list, 0)->app_idx = param->provisioner_add_app_key_comp.app_idx;
+            err = esp_ble_mesh_provisioner_bind_app_key_to_local_model(PROV_OWN_ADDR, get_app_key_node(app_key_list, 0)->app_idx,
                                                                        ESP_BLE_MESH_MODEL_ID_GEN_ONOFF_CLI, ESP_BLE_MESH_CID_NVAL);
             if (err != ESP_OK)
             {
@@ -183,9 +235,9 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             ESP_LOGI(TAG, "composition data %s", bt_hex(param->status_cb.comp_data_status.composition_data->data, param->status_cb.comp_data_status.composition_data->len));
             esp_ble_mesh_cfg_client_set_state_t set_state = {0};
             example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD);
-            set_state.app_key_add.net_idx = prov_key.net_idx;
-            set_state.app_key_add.app_idx = prov_key.app_idx;
-            memcpy(set_state.app_key_add.app_key, prov_key.app_key, 16);
+            set_state.app_key_add.net_idx = NET_INX;
+            set_state.app_key_add.app_idx = get_app_key_node(app_key_list, 0)->app_idx;
+            memcpy(set_state.app_key_add.app_key, get_app_key_node(app_key_list, 0)->app_key, 16);
             err = esp_ble_mesh_config_client_set_state(&common, &set_state);
             if (err)
             {
@@ -206,7 +258,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             esp_ble_mesh_cfg_client_set_state_t set_state = {0};
             example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
             set_state.model_app_bind.element_addr = node->unicast;
-            set_state.model_app_bind.model_app_idx = prov_key.app_idx;
+            set_state.model_app_bind.model_app_idx = get_app_key_node(app_key_list, 0)->app_idx;
             set_state.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_GEN_ONOFF_SRV;
             set_state.model_app_bind.company_id = ESP_BLE_MESH_CID_NVAL;
             err = esp_ble_mesh_config_client_set_state(&common, &set_state);
@@ -266,9 +318,9 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
         {
             esp_ble_mesh_cfg_client_set_state_t set_state = {0};
             example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD);
-            set_state.app_key_add.net_idx = prov_key.net_idx;
-            set_state.app_key_add.app_idx = prov_key.app_idx;
-            memcpy(set_state.app_key_add.app_key, prov_key.app_key, 16);
+            set_state.app_key_add.net_idx = NET_INX;
+            set_state.app_key_add.app_idx = get_app_key_node(app_key_list, 0)->app_idx;
+            memcpy(set_state.app_key_add.app_key, get_app_key_node(app_key_list, 0)->app_key, 16);
             err = esp_ble_mesh_config_client_set_state(&common, &set_state);
             if (err)
             {
@@ -282,7 +334,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             esp_ble_mesh_cfg_client_set_state_t set_state = {0};
             example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
             set_state.model_app_bind.element_addr = node->unicast;
-            set_state.model_app_bind.model_app_idx = prov_key.app_idx;
+            set_state.model_app_bind.model_app_idx = get_app_key_node(app_key_list, 0)->app_idx;
             set_state.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_GEN_ONOFF_SRV;
             set_state.model_app_bind.company_id = ESP_BLE_MESH_CID_NVAL;
             err = esp_ble_mesh_config_client_set_state(&common, &set_state);
