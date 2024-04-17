@@ -48,7 +48,7 @@ static void *link_list_find_by_index(link_list_handle_t list, short index)
 {
     link_list *list_p = (link_list *)list;
 
-    if (list_p->next->index < index)
+    if (list_p->next->index < index || list_p->next == NULL)
     {
         return NULL;
     }
@@ -70,7 +70,26 @@ static void *link_list_find_by_index(link_list_handle_t list, short index)
 
 static void *link_list_find_by_id(link_list_handle_t list, void *id)
 {
+    link_list *list_p = (link_list *)list;
 
+    if (list_p->next == NULL)
+    {
+        return NULL;
+    }
+    else
+    {
+        link_list *node_p = list_p;
+        while (node_p->next != NULL)
+        {
+            if (0 == memcmp(id, node_p->next->id, node_p->next->id_len))
+            {
+                return node_p->next->vendor_data;
+            }
+            node_p = node_p->next;
+        }
+
+        return NULL;
+    }
 }
 
 link_list_manager *link_list_manager_get(void)
