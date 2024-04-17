@@ -1,14 +1,22 @@
 #include "link_list.h"
 #include <stdlib.h>
+#include <string.h>
 
 typedef struct link_node
 {
     short index;
+    void *id;
+    unsigned short int id_len;
     void *vendor_data;
+    unsigned short int vendor_data_size;
     struct link_node *next;
 } link_list;
 
-static short link_list_add(link_list_handle_t list, void *node)
+static short link_list_add(link_list_handle_t list, 
+                           void *node, 
+                           unsigned short int node_size,
+                           void *id, 
+                           unsigned short int id_len)
 {
     link_list *temp_node = (link_list *)malloc(sizeof(struct link_node));
     link_list *link_p = (link_list *)list;
@@ -22,14 +30,21 @@ static short link_list_add(link_list_handle_t list, void *node)
         temp_node->index = (++(link_p->next->index));
     }
 
-    temp_node->vendor_data = node;
+    temp_node->id_len = id_len;
+    temp_node->id = malloc(id_len);
+    memcpy(temp_node->id, id, id_len);
+
+    temp_node->vendor_data_size = node_size;
+    temp_node->vendor_data = malloc(node_size);
+    memcpy(temp_node->vendor_data, node, node_size);
+
     temp_node->next = link_p->next;
     link_p->next = temp_node;
 
     return temp_node->index;
 }
 
-static void *link_list_find(link_list_handle_t list, short index)
+static void *link_list_find_by_index(link_list_handle_t list, short index)
 {
     link_list *list_p = (link_list *)list;
 
@@ -53,6 +68,11 @@ static void *link_list_find(link_list_handle_t list, short index)
     }
 }
 
+static void *link_list_find_by_id(link_list_handle_t list, void *id)
+{
+
+}
+
 link_list_manager *link_list_manager_get(void)
 {
     link_list_manager *manager = (link_list_manager *)malloc(sizeof(link_list_manager));
@@ -64,7 +84,8 @@ link_list_manager *link_list_manager_get(void)
     manager->list = (link_list_handle_t *)list;
 
     manager->add2list = link_list_add;
-    manager->find_in_list = link_list_find;
+    manager->find_by_index = link_list_find_by_index;
+    manager->find_by_id = link_list_find_by_id;
 
     return manager;
 }

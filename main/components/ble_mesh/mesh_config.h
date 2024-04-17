@@ -9,3 +9,5 @@
 #define APP_KEY_0 "stoneBeastkey001"
 
 #define CID_STONE 0x9942
+
+#define COMP_DATA_PAGE_0 0x00;

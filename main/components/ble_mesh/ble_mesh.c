@@ -17,17 +17,26 @@
 
 static app_key_manager *app_key_list = NULL;
 
-static esp_ble_mesh_prov_t provision = {
-    .prov_uuid = dev_uuid,
-    .prov_unicast_addr = PROV_OWN_ADDR,
-    .prov_start_address = 0x0005,
-    .prov_attention = 0x00,
-    .prov_algorithm = 0x00,
-    .prov_pub_key_oob = 0x00,
-    .prov_static_oob_val = NULL,
-    .prov_static_oob_len = 0x00,
-    .flags = 0x00,
-    .iv_index = 0x00,
+static esp_ble_mesh_client_t config_client;
+static esp_ble_mesh_client_t onoff_client;
+
+static esp_ble_mesh_cfg_srv_t config_server = {
+    .relay = ESP_BLE_MESH_RELAY_DISABLED,
+    .beacon = ESP_BLE_MESH_BEACON_ENABLED,
+#if defined(CONFIG_BLE_MESH_FRIEND)
+    .friend_state = ESP_BLE_MESH_FRIEND_ENABLED,
+#else
+    .friend_state = ESP_BLE_MESH_FRIEND_NOT_SUPPORTED,
+#endif
+#if defined(CONFIG_BLE_MESH_GATT_PROXY_SERVER)
+    .gatt_proxy = ESP_BLE_MESH_GATT_PROXY_ENABLED,
+#else
+    .gatt_proxy = ESP_BLE_MESH_GATT_PROXY_NOT_SUPPORTED,
+#endif
+    .default_ttl = 7,
+    /* 3 transmissions with 20ms interval */
+    .net_transmit = ESP_BLE_MESH_TRANSMIT(2, 20),
+    .relay_retransmit = ESP_BLE_MESH_TRANSMIT(2, 20),
 };
 
 static esp_ble_mesh_model_t root_models[] = {
@@ -44,6 +53,19 @@ static esp_ble_mesh_comp_t composition = {
     .cid = CID_STONE,
     .elements = elements,
     .element_count = ARRAY_SIZE(elements),
+};
+
+static esp_ble_mesh_prov_t provision = {
+    .prov_uuid = dev_uuid,
+    .prov_unicast_addr = PROV_OWN_ADDR,
+    .prov_start_address = 0x0005,
+    .prov_attention = 0x00,
+    .prov_algorithm = 0x00,
+    .prov_pub_key_oob = 0x00,
+    .prov_static_oob_val = NULL,
+    .prov_static_oob_len = 0x00,
+    .flags = 0x00,
+    .iv_index = 0x00,
 };
 
 static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
@@ -426,9 +448,9 @@ esp_err_t ble_mesh_init(void)
         return err;
     }
 
-    err = esp_ble_mesh_provisioner_add_local_app_key(((app_key_t *)app_key_list->find_in_list(app_key_list->list, 0))->app_key,
+    err = esp_ble_mesh_provisioner_add_local_app_key(get_app_key_node(app_key_list, 0)->app_key,
                                                      NET_INX,
-                                                     ((app_key_t *)app_key_list->find_in_list(app_key_list->list, 0))->app_idx);
+                                                     get_app_key_node(app_key_list, 0)->app_idx);
     if (err != ESP_OK)
     {
         ESP_LOGE(TAG, "Failed to add local AppKey (err %d)", err);

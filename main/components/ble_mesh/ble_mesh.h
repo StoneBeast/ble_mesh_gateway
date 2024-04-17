@@ -12,6 +12,14 @@ typedef struct app_key_node
     uint8_t app_key[APP_KEY_LEN];
 } app_key_t;
 
+typedef struct dev_node_info_node
+{
+    uint8_t uuid[16];
+    uint16_t unicast;
+    uint8_t elem_num;
+    uint8_t onoff;
+} dev_node_info_t;
+
 typedef link_list_manager app_key_manager;
 
 esp_err_t ble_mesh_init(void);
