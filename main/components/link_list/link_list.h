@@ -1,8 +1,15 @@
 #ifndef _LINK_LIST_H_
 #define _LINK_LIST_H_
 
-void link_list_init(void * list, unsigned short sizeof_node);
-void link_list_add(void *list, void *node);
-void link_list_find(void *list, unsigned short index);
+typedef void* link_list_handle_t;
+
+typedef struct
+{
+    link_list_handle_t list;
+    short (*add2list)(link_list_handle_t list, void *node);
+    void *(*find_in_list)(link_list_handle_t list, short index);
+} link_list_manager;
+
+link_list_manager *link_list_manager_get(void);
 
 #endif
