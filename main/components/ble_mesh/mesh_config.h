@@ -1,0 +1,2 @@
+#define APP_KEY []
+#define NET_INX ESP_BLE_MESH_KEY_PRIMARY
