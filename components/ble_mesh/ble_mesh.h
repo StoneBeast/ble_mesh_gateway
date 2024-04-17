@@ -17,9 +17,11 @@ typedef struct dev_node_info_node
     uint8_t uuid[16];
     uint16_t unicast;
     uint8_t elem_num;
+    uint8_t data;
 } dev_node_info_t;
 
 typedef link_list_manager app_key_manager;
+typedef link_list_manager dev_node_manager;
 
 void ble_mesh_get_dev_uuid(uint8_t *dev_uuid,
                            uint8_t *match_data,

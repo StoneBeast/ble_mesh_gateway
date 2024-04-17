@@ -21,7 +21,15 @@ app_key_t *get_app_key_node(app_key_manager *manager, uint16_t index);
 
 /***************************************** NODE INFO PART **************************************************/
 
+void add_dev_node_info(dev_node_manager *manager,
+                       uint8_t uuid[DEV_UUID_LEN],
+                       uint16_t unicast,
+                       uint8_t elem_num,
+                       uint8_t data);
 
+dev_node_manager *dev_node_info_manager_get(void);
+
+dev_node_info_t *get_dev_info_node(dev_node_manager *manager, uint16_t unicast);
 
 /***************************************** NODE INFO PART **************************************************/
 #endif
