@@ -2,19 +2,16 @@
 #define _BLE_MESH_H_
 
 #include "esp_err.h"
+#include "link_list.h"
+#include "mesh_config.h"
 
 typedef struct app_key_node
 {
     uint16_t app_idx;
-    uint8_t app_key[16];
-    struct app_key_node *next;
+    uint8_t app_key[APP_KEY_LEN];
 } app_key_t;
 
-typedef struct 
-{
-    app_key_t *app_key_list;
-    
-}app_key_manager;
+typedef link_list_manager app_key_manager;
 
 esp_err_t ble_mesh_init(void);
 

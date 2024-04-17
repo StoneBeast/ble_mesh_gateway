@@ -1,22 +1,107 @@
+#include <string.h>
+
 #include "ble_mesh.h"
-#include "mesh_config.h"
 #include "esp_ble_mesh_defs.h"
 
 #define TAG "BLE_MESH_C"
 
-static struct esp_ble_mesh_key
+static app_key_manager *app_key_list = NULL;
+
+static add_app_key(uint16_t app_idx, uint8_t app_key[APP_KEY_LEN])
 {
-    uint16_t app_idx;
-    uint8_t app_key[16];
-} prov_key;
+    app_key_t *node = (app_key_t *)malloc(sizeof(app_key_t));
+
+    node->app_idx = app_idx;
+    memcpy(node->app_key, app_key, APP_KEY_LEN);
+
+    app_key_list->add2list(app_key_list->list, node);
+}
+
+static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
+                                             esp_ble_mesh_prov_cb_param_t *param)
+{
+    switch (event)
+    {
+    case ESP_BLE_MESH_PROVISIONER_PROV_ENABLE_COMP_EVT:
+        ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_PROV_ENABLE_COMP_EVT, err_code %d", param->provisioner_prov_enable_comp.err_code);
+        break;
+    case ESP_BLE_MESH_PROVISIONER_PROV_DISABLE_COMP_EVT:
+        ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_PROV_DISABLE_COMP_EVT, err_code %d", param->provisioner_prov_disable_comp.err_code);
+        break;
+    case ESP_BLE_MESH_PROVISIONER_RECV_UNPROV_ADV_PKT_EVT:
+        ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_RECV_UNPROV_ADV_PKT_EVT");
+        recv_unprov_adv_pkt(param->provisioner_recv_unprov_adv_pkt.dev_uuid, param->provisioner_recv_unprov_adv_pkt.addr,
+                            param->provisioner_recv_unprov_adv_pkt.addr_type, param->provisioner_recv_unprov_adv_pkt.oob_info,
+                            param->provisioner_recv_unprov_adv_pkt.adv_type, param->provisioner_recv_unprov_adv_pkt.bearer);
+        break;
+    case ESP_BLE_MESH_PROVISIONER_PROV_LINK_OPEN_EVT:
+        prov_link_open(param->provisioner_prov_link_open.bearer);
+        break;
+    case ESP_BLE_MESH_PROVISIONER_PROV_LINK_CLOSE_EVT:
+        prov_link_close(param->provisioner_prov_link_close.bearer, param->provisioner_prov_link_close.reason);
+        break;
+    case ESP_BLE_MESH_PROVISIONER_PROV_COMPLETE_EVT:
+        prov_complete(param->provisioner_prov_complete.node_idx, param->provisioner_prov_complete.device_uuid,
+                      param->provisioner_prov_complete.unicast_addr, param->provisioner_prov_complete.element_num,
+                      param->provisioner_prov_complete.netkey_idx);
+        break;
+    case ESP_BLE_MESH_PROVISIONER_ADD_UNPROV_DEV_COMP_EVT:
+        ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_ADD_UNPROV_DEV_COMP_EVT, err_code %d", param->provisioner_add_unprov_dev_comp.err_code);
+        break;
+    case ESP_BLE_MESH_PROVISIONER_SET_DEV_UUID_MATCH_COMP_EVT:
+        ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_SET_DEV_UUID_MATCH_COMP_EVT, err_code %d", param->provisioner_set_dev_uuid_match_comp.err_code);
+        break;
+    case ESP_BLE_MESH_PROVISIONER_SET_NODE_NAME_COMP_EVT:
+    {
+        ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_SET_NODE_NAME_COMP_EVT, err_code %d", param->provisioner_set_node_name_comp.err_code);
+        if (param->provisioner_set_node_name_comp.err_code == ESP_OK)
+        {
+            const char *name = NULL;
+            name = esp_ble_mesh_provisioner_get_node_name(param->provisioner_set_node_name_comp.node_index);
+            if (!name)
+            {
+                ESP_LOGE(TAG, "Get node name failed");
+                return;
+            }
+            ESP_LOGI(TAG, "Node %d name is: %s", param->provisioner_set_node_name_comp.node_index, name);
+        }
+        break;
+    }
+    case ESP_BLE_MESH_PROVISIONER_ADD_LOCAL_APP_KEY_COMP_EVT:
+    {
+        ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_ADD_LOCAL_APP_KEY_COMP_EVT, err_code %d", param->provisioner_add_app_key_comp.err_code);
+        if (param->provisioner_add_app_key_comp.err_code == ESP_OK)
+        {
+            esp_err_t err = 0;
+            prov_key.app_idx = param->provisioner_add_app_key_comp.app_idx;
+            err = esp_ble_mesh_provisioner_bind_app_key_to_local_model(PROV_OWN_ADDR, prov_key.app_idx,
+                                                                       ESP_BLE_MESH_MODEL_ID_GEN_ONOFF_CLI, ESP_BLE_MESH_CID_NVAL);
+            if (err != ESP_OK)
+            {
+                ESP_LOGE(TAG, "Provisioner bind local model appkey failed");
+                return;
+            }
+        }
+        break;
+    }
+    case ESP_BLE_MESH_PROVISIONER_BIND_APP_KEY_TO_MODEL_COMP_EVT:
+        ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_BIND_APP_KEY_TO_MODEL_COMP_EVT, err_code %d", param->provisioner_bind_app_key_to_model_comp.err_code);
+        break;
+    default:
+        break;
+    }
+
+    return;
+}
 
 esp_err_t ble_mesh_init(void)
 {
     uint8_t match[2] = {0xdd, 0xdd};
     esp_err_t err = ESP_OK;
 
-    prov_key.app_idx = APP_KEY_IDX;
-    memset(prov_key.app_key, APP_KEY_OCTET, sizeof(prov_key.app_key));
+    app_key_list = link_list_manager_get();
+
+    add_app_key(APP_INDEX_0, APP_KEY_0);
 
     esp_ble_mesh_register_prov_callback(example_ble_mesh_provisioning_cb);
     esp_ble_mesh_register_config_client_callback(example_ble_mesh_config_client_cb);

@@ -15,5 +15,11 @@
     "idf.pythonBinPathWin": "D:/Espressif/python_env/idf5.1_py3.11_env/Scripts/python.exe",
     "idf.toolsPathWin": "D:\\Espressif",
     "idf.portWin": "COM7",
-    "idf.flashType": "UART"
+    "idf.flashType": "UART",
+    "files.associations": {
+        "*.cjson": "jsonc",
+        "*.wxss": "css",
+        "*.wxs": "javascript",
+        "link.h": "c"
+    }
 }
