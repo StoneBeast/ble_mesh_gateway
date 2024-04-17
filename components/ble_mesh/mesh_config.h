@@ -1,5 +1,10 @@
 #define NET_INX ESP_BLE_MESH_KEY_PRIMARY
 
+#define MSG_SEND_TTL             3
+#define MSG_SEND_REL             false
+#define MSG_TIMEOUT              0
+#define MSG_ROLE                 ROLE_PROVISIONER
+
 #define DEV_UUID_LEN             16
 #define APP_KEY_LEN              16
 #define MATCH_DATA_LEN           2

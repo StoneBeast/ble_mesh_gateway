@@ -1,4 +1,9 @@
+#include <string.h>
+
 #include "ble_mesh_utils.h"
+#include "esp_bt.h"
+#include "esp_bt_main.h"
+#include "esp_bt_device.h"
 
 #define TAG "BLE_MESH_UTILS_C"
 

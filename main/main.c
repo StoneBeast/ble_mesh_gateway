@@ -646,8 +646,6 @@ void app_main(void)
         return;
     }
 
-    ble_mesh_get_dev_uuid(dev_uuid);
-
     /* Initialize the Bluetooth Mesh Subsystem */
     err = ble_mesh_init();
     if (err) {
