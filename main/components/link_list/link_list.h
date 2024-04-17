@@ -13,6 +13,7 @@ typedef struct
                       unsigned short int id_len);
     void *(*find_by_index)(link_list_handle_t list, short index);
     void *(*find_by_id)(link_list_handle_t list, void *id);
+    void  (*delete_by_id)(link_list_handle_t list, void *id);
 } link_list_manager;
 
 link_list_manager *link_list_manager_get(void);
