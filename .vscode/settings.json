@@ -20,6 +20,13 @@
         "*.cjson": "jsonc",
         "*.wxss": "css",
         "*.wxs": "javascript",
-        "link.h": "c"
+        "link.h": "c",
+        "inttypes.h": "c",
+        "ble_mesh.h": "c",
+        "ble_mesh_example_init.h": "c",
+        "esp_ble_mesh_provisioning_api.h": "c",
+        "ble_mesh_utils.h": "c",
+        "esp_ble_mesh_defs.h": "c",
+        "mesh_config.h": "c"
     }
 }

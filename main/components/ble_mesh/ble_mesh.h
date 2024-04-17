@@ -4,6 +4,7 @@
 #include "esp_err.h"
 #include "link_list.h"
 #include "mesh_config.h"
+#include "esp_ble_mesh_defs.h"
 
 typedef struct app_key_node
 {

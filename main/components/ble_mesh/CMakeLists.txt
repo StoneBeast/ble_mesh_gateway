@@ -1,2 +1,2 @@
-idf_component_register(SRCS "ble_mesh.c" 
+idf_component_register(SRCS "ble_mesh.c" "ble_mesh_utils.c" "ble_mesh_store.h"
                     INCLUDE_DIRS ".")  
