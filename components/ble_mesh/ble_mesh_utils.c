@@ -75,7 +75,7 @@ dev_node_manager *dev_node_info_manager_get(void)
 
 dev_node_info_t *get_dev_info_node(dev_node_manager *manager, uint16_t unicast)
 {
-    return (dev_node_info_t *)manager->find_by_id(manager->list, unicast);
+    return (dev_node_info_t *)manager->find_by_id(manager->list, &unicast);
 }
 
 /***************************************** NODE INFO PART **************************************************/

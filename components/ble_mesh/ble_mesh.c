@@ -210,6 +210,7 @@ static esp_err_t prov_complete(int node_idx, const esp_ble_mesh_octet16_t uuid,
     // err = add_dev_node_info(dev_node_list, uuid, unicast, elem_num, 0x0);
     
     add_dev_node_info(dev_node_list, uuid, unicast, elem_num, 0x0);
+    // dev_node_info_t *temp_n_p = get_dev_info_node(dev_node_list, unicast);
     // if (err) {
         // ESP_LOGE(TAG, "%s: Store node info failed", __func__);
     //     return ESP_FAIL;
