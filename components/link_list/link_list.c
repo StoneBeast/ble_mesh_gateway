@@ -44,7 +44,7 @@ static short link_list_add(link_list_handle_t list,
     return temp_node->index;
 }
 
-static void *link_list_find_by_index(link_list_handle_t list, unsigned short index)
+static void *link_list_find_by_index(link_list_handle_t list, short index)
 {
     link_list *list_p = (link_list *)list;
 

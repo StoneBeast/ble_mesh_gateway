@@ -207,16 +207,10 @@ static esp_err_t prov_complete(int node_idx, const esp_ble_mesh_octet16_t uuid,
         return ESP_FAIL;
     }
 
-    // err = add_dev_node_info(dev_node_list, uuid, unicast, elem_num, 0x0);
     
     add_dev_node_info(dev_node_list, uuid, unicast, elem_num, 0x0);
-    // dev_node_info_t *temp_n_p = get_dev_info_node(dev_node_list, unicast);
-    // if (err) {
-        // ESP_LOGE(TAG, "%s: Store node info failed", __func__);
-    //     return ESP_FAIL;
-    // }
 
-    //  TODO: 初步断点
+
     node = example_ble_mesh_get_node_info(unicast);
     if (!node) {
         ESP_LOGE(TAG, "%s: Get node info failed", __func__);
