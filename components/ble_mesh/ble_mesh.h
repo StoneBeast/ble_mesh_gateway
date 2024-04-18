@@ -20,9 +20,6 @@ typedef struct dev_node_info_node
     uint8_t data;
 } dev_node_info_t;
 
-typedef link_list_manager app_key_manager;
-typedef link_list_manager dev_node_manager;
-
 void ble_mesh_get_dev_uuid(uint8_t *dev_uuid,
                            uint8_t *match_data,
                            uint8_t *device_identify_data);

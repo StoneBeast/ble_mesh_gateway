@@ -30,8 +30,8 @@
 
 #define TAG "BLE_MESH_C"
 
-static app_key_manager *app_key_list = NULL;
-static dev_node_manager *dev_node_list = NULL;
+static app_key_manager_handle_t app_key_list = NULL;
+static dev_node_manager_handle_t dev_node_list = NULL;
 
 static esp_ble_mesh_client_t config_client;
 static esp_ble_mesh_client_t onoff_client;

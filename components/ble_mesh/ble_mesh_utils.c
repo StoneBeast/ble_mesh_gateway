@@ -24,33 +24,33 @@ void ble_mesh_get_dev_uuid(uint8_t *dev_uuid,
 
 /****************************************** APP KEY PART **************************************************/
 
-void add_app_key(app_key_manager *manager, uint16_t app_idx, uint8_t app_key[APP_KEY_LEN])
+void add_app_key(app_key_manager_handle_t manager, uint16_t app_idx, uint8_t app_key[APP_KEY_LEN])
 {
     app_key_t *node = (app_key_t *)malloc(sizeof(app_key_t));
 
     node->app_idx = app_idx;
     memcpy(node->app_key, app_key, APP_KEY_LEN);
 
-    manager->add2list(manager->list, node, sizeof(app_key_t), &(node->app_idx), sizeof(node->app_idx));
+    ((link_list_manager *)manager)->add2list(((link_list_manager *)manager)->list, node, sizeof(app_key_t), &(node->app_idx), sizeof(node->app_idx));
 
     free(node);
 }
 
-app_key_manager *app_key_manager_get(void)
+app_key_manager_handle_t app_key_manager_get(void)
 {
-    return (app_key_manager*) link_list_manager_get();
+    return (app_key_manager_handle_t )link_list_manager_get();
 }
 
-app_key_t *get_app_key_node(app_key_manager *manager, uint16_t index)
+app_key_t *get_app_key_node(app_key_manager_handle_t manager, uint16_t index)
 {
-    return (app_key_t*)manager->find_by_index(manager->list, index);
+    return (app_key_t *)((link_list_manager *)manager)->find_by_index(((link_list_manager *)manager)->list, index);
 }
 
 /****************************************** APP KEY PART **************************************************/
 
 /***************************************** NODE INFO PART **************************************************/
 
-void add_dev_node_info(dev_node_manager *manager,
+void add_dev_node_info(dev_node_manager_handle_t manager,
                        const uint8_t uuid[DEV_UUID_LEN],
                        uint16_t unicast,
                        uint8_t elem_num,
@@ -63,19 +63,19 @@ void add_dev_node_info(dev_node_manager *manager,
     node->elem_num = elem_num;
     node->data = data;
 
-    manager->add2list(manager->list, node, sizeof(dev_node_info_t), &(node->unicast), sizeof(unicast));
+    ((link_list_manager *)manager)->add2list(((link_list_manager *)manager)->list, node, sizeof(dev_node_info_t), &(node->unicast), sizeof(unicast));
 
     free(node);
 }
 
-dev_node_manager *dev_node_info_manager_get(void)
+dev_node_manager_handle_t dev_node_info_manager_get(void)
 {
-    return (dev_node_manager *)link_list_manager_get();
+    return (dev_node_manager_handle_t )link_list_manager_get();
 }
 
-dev_node_info_t *get_dev_info_node(dev_node_manager *manager, uint16_t unicast)
+dev_node_info_t *get_dev_info_node(dev_node_manager_handle_t manager, uint16_t unicast)
 {
-    return (dev_node_info_t *)manager->find_by_id(manager->list, &unicast);
+    return (dev_node_info_t *)((link_list_manager *)manager)->find_by_id(((link_list_manager *)manager)->list, &unicast);
 }
 
 /***************************************** NODE INFO PART **************************************************/
