@@ -6,17 +6,17 @@ typedef struct link_node
 {
     short index;
     void *id;
-    unsigned short int id_len;
+    unsigned short id_len;
     void *vendor_data;
-    unsigned short int vendor_data_size;
+    unsigned short vendor_data_size;
     struct link_node *next;
 } link_list;
 
 static short link_list_add(link_list_handle_t list, 
                            void *node, 
-                           unsigned short int node_size,
+                           unsigned short node_size,
                            void *id, 
-                           unsigned short int id_len)
+                           unsigned short id_len)
 {
     link_list *temp_node = (link_list *)malloc(sizeof(struct link_node));
     link_list *link_p = (link_list *)list;
@@ -44,7 +44,7 @@ static short link_list_add(link_list_handle_t list,
     return temp_node->index;
 }
 
-static void *link_list_find_by_index(link_list_handle_t list, short index)
+static void *link_list_find_by_index(link_list_handle_t list, unsigned short index)
 {
     link_list *list_p = (link_list *)list;
 

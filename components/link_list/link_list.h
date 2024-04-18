@@ -8,9 +8,9 @@ typedef struct
     link_list_handle_t list;
     short (*add2list)(link_list_handle_t list,
                       void *node,
-                      unsigned short int node_size,
+                      unsigned short node_size,
                       void *id,
-                      unsigned short int id_len);
+                      unsigned short id_len);
     void *(*find_by_index)(link_list_handle_t list, short index);
     void *(*find_by_id)(link_list_handle_t list, void *id);
     void  (*delete_by_id)(link_list_handle_t list, void *id);
