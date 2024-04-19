@@ -15,6 +15,7 @@
 #include "nvs_flash.h"
 
 #include "ble_mesh.h"
+#include "board.h"
 
 // #include "esp_ble_mesh_defs.h"
 // #include "esp_ble_mesh_common_api.h"
