@@ -16,12 +16,16 @@
 
 #include "ble_mesh.h"
 #include "board.h"
+#include "main.h"
 
 #define TAG "MAIN_C"
+
+void status_changed_cb(void *args);
 
 void app_main(void)
 {
     esp_err_t err;
+    TaskHandle_t *task_status_changed;
 
     ESP_LOGI(TAG, "Initializing...");
 
@@ -44,4 +48,20 @@ void app_main(void)
         ESP_LOGE(TAG, "Bluetooth mesh init failed (err %d)", err);
     }
 
+    xTaskCreate(status_changed_cb,
+                "status_change",
+                4096,
+                NULL,
+                TASK_NORMAL_PRIORITY,
+                task_status_changed);
+}
+
+void status_changed_cb(void *args)
+{
+    board_init();
+
+    while (1)
+    {
+        
+    }
 }
