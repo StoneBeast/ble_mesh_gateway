@@ -44,18 +44,4 @@ void app_main(void)
         ESP_LOGE(TAG, "Bluetooth mesh init failed (err %d)", err);
     }
 
-    // board_init();
-    // uint32_t my_timer = 0;
-
-    // while (1)
-    // {
-    //     ESP_LOGI("LED_TEST", "here");
-    //     gpio_set_level(LED_PIN, 0);
-
-    //     while (my_timer++ < 10000000);
-
-    //     gpio_set_level(LED_PIN, 1);
-
-    //     while (my_timer-- > 3);
-    // }
 }
