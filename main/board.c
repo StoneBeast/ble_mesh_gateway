@@ -1,5 +1,8 @@
 #include "board.h"
 #include "driver/gpio.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "esp_log.h"
 
 /*
     指示灯:
@@ -51,4 +54,30 @@ void board_init(void)
 {
     board_led_init();
     board_button_init();
+}
+
+void board_led_start(provisioner_status_t *status)
+{
+    uint8_t led_level = 0;
+    while (1)
+    {
+        switch (*status)
+        {
+        case PROVISIONER_STATUS_PROVISIONING:
+            gpio_set_level(LED_PIN, 1);
+            led_level = 1;
+            break;
+        case PROVISIONER_STATUS_SCAN:
+            gpio_set_level(LED_PIN, !led_level);
+            led_level = !led_level;
+            vTaskDelay(pdMS_TO_TICKS(100));
+            break;
+        default:
+            gpio_set_level(LED_PIN, !led_level);
+            led_level = !led_level;
+            vTaskDelay(pdMS_TO_TICKS(500));
+            break;
+        }
+    }
+    
 }

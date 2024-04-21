@@ -1,12 +1,3 @@
-/* main.c - Application main entry point */
-
-/*
- * SPDX-FileCopyrightText: 2017 Intel Corporation
- * SPDX-FileContributor: 2018-2021 Espressif Systems (Shanghai) CO LTD
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
@@ -20,12 +11,14 @@
 
 #define TAG "MAIN_C"
 
+provisioner_status_t status = PROVISIONER_STATUS_NORMAL;
+
 void status_changed_cb(void *args);
 
 void app_main(void)
 {
     esp_err_t err;
-    TaskHandle_t *task_status_changed;
+    TaskHandle_t *task_status_changed = NULL;
 
     ESP_LOGI(TAG, "Initializing...");
 
@@ -51,7 +44,7 @@ void app_main(void)
     xTaskCreate(status_changed_cb,
                 "status_change",
                 4096,
-                NULL,
+                &status,
                 TASK_NORMAL_PRIORITY,
                 task_status_changed);
 }
@@ -60,8 +53,7 @@ void status_changed_cb(void *args)
 {
     board_init();
 
-    while (1)
-    {
-        
-    }
+    provisioner_status_t *pro_status = (provisioner_status_t*) args;
+
+    board_led_start(pro_status);
 }

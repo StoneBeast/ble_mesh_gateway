@@ -32,6 +32,12 @@
         "link_list.h": "c",
         "esp_ble_mesh_common_api.h": "c",
         "array": "c",
-        "regex": "c"
+        "regex": "c",
+        "esp_bt.h": "c",
+        "main.h": "c",
+        "board.h": "c",
+        "esp_log.h": "c",
+        "nvs_flash.h": "c",
+        "string.h": "c"
     }
 }

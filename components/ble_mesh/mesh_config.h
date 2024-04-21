@@ -1,3 +1,6 @@
+#ifndef _MESH_CONFIG_H_
+#define _MESH_CONFIG_H_
+
 #define NET_INX ESP_BLE_MESH_KEY_PRIMARY
 
 #define MSG_SEND_TTL             3
@@ -17,3 +20,14 @@
 
 #define PROV_OWN_ADDR 0x0001
 #define COMP_DATA_PAGE_0 0x00;
+
+#define TASK_NORMAL_PRIORITY 2
+
+typedef enum
+{
+    PROVISIONER_STATUS_NORMAL = 0,
+    PROVISIONER_STATUS_SCAN,
+    PROVISIONER_STATUS_PROVISIONING
+} provisioner_status_t;
+
+#endif // _MESH_CONFIG_H_
