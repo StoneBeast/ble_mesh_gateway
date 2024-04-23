@@ -5,7 +5,6 @@
 #include "mesh_config.h"
 
 #define LED_PIN         GPIO_NUM_13
-#define USER_BUTTON_PIN GPIO_NUM_12
 
 #define PIN_MASK(pin) ((uint64_t)(1 << pin))
 

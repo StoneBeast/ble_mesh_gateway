@@ -14,6 +14,7 @@
 provisioner_status_t status = PROVISIONER_STATUS_NORMAL;
 
 void status_changed_cb(void *args);
+static void user_button_cb(void *args);
 
 void app_main(void)
 {
@@ -52,7 +53,6 @@ void app_main(void)
 void status_changed_cb(void *args)
 {
     board_init();
-
     provisioner_status_t *pro_status = (provisioner_status_t*) args;
 
     board_led_start(pro_status);

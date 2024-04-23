@@ -21,7 +21,7 @@
 #define PROV_OWN_ADDR 0x0001
 #define COMP_DATA_PAGE_0 0x00;
 
-#define TASK_NORMAL_PRIORITY 2
+#define TASK_NORMAL_PRIORITY 1
 
 typedef enum
 {
