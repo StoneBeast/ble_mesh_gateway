@@ -8,13 +8,13 @@
 #include "ble_mesh.h"
 #include "board.h"
 #include "main.h"
+#include "wifi.h"
 
 #define TAG "MAIN_C"
 
 provisioner_status_t status = PROVISIONER_STATUS_NORMAL;
 
 void status_changed_cb(void *args);
-static void user_button_cb(void *args);
 
 void app_main(void)
 {
@@ -41,6 +41,8 @@ void app_main(void)
     if (err) {
         ESP_LOGE(TAG, "Bluetooth mesh init failed (err %d)", err);
     }
+
+    wifi_init();
 
     xTaskCreate(status_changed_cb,
                 "status_change",
