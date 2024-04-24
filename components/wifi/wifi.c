@@ -6,7 +6,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
 #include "esp_wifi.h"
-#include "esp_netif.h"
 
 static EventGroupHandle_t wifi_event_group;
 static esp_netif_t *sta_netif = NULL;
@@ -87,7 +86,6 @@ static bool wifi_connect_to_ap(const char *ssid, const char *pass)
 
     reconnect = true;
     esp_wifi_disconnect();
-    // ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_STA) ); //by snake
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
     esp_wifi_connect();
 
@@ -106,9 +104,7 @@ void wifi_init(void)
         return;
     }
 
-    // ESP_ERROR_CHECK(esp_netif_init());
     wifi_event_group = xEventGroupCreate();
-    // ESP_ERROR_CHECK(esp_event_loop_create_default());
     sta_netif = esp_netif_create_default_wifi_sta();
     assert(sta_netif);
     ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL));
