@@ -6,7 +6,7 @@
 #include "esp_wifi.h"
 #include "esp_event.h"
 #include "esp_log.h"
-#include "nvs_flash.h"
+// #include "nvs_flash.h"
 #include "esp_netif.h"
 
 #include "lwip/err.h"
@@ -19,7 +19,7 @@
 #define KEEPALIVE_INTERVAL 5
 #define KEEPALIVE_COUNT 3
 
-static const char *TAG = "example";
+static const char *TAG = "TCP_SERVER_C";
 
 static void do_retransmit(const int sock)
 {
@@ -62,6 +62,8 @@ static void do_retransmit(const int sock)
 
 static void tcp_server_task(void *pvParameters)
 {
+    ESP_LOGI(TAG, "tcp server task start");
+
     char addr_str[128];
     int addr_family = (int)pvParameters;
     int ip_protocol = 0;
@@ -147,10 +149,9 @@ CLEAN_UP:
 
 void tcp_server_start(void)
 {
-    ESP_ERROR_CHECK(nvs_flash_init());
-    ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
-
+    // ESP_ERROR_CHECK(nvs_flash_init());
+    // ESP_ERROR_CHECK(esp_netif_init());
+    // ESP_ERROR_CHECK(esp_event_loop_create_default());
 
     xTaskCreate(tcp_server_task, "tcp_server", 4096, (void *)AF_INET, 5, NULL);
 }

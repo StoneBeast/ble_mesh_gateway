@@ -14,19 +14,9 @@
 
 #include <sdkconfig.h>
 
-#ifdef CONFIG_BT_BLUEDROID_ENABLED
 #include "esp_bt.h"
 #include "esp_bt_main.h"
 #include "esp_bt_device.h"
-#endif
-
-#ifdef CONFIG_BT_NIMBLE_ENABLED
-#include "nimble/nimble_port.h"
-#include "nimble/nimble_port_freertos.h"
-#include "host/ble_hs.h"
-#include "host/util/util.h"
-#include "console/console.h"
-#endif
 
 #define TAG "BLE_MESH_C"
 

@@ -38,6 +38,7 @@
         "board.h": "c",
         "esp_log.h": "c",
         "nvs_flash.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "esp_bt_device.h": "c"
     }
 }

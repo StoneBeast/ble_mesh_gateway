@@ -9,6 +9,8 @@
 #include "board.h"
 #include "main.h"
 #include "wifi.h"
+#include "tcp_server.h"
+#include "idf_feature_init.h"
 
 #define TAG "MAIN_C"
 
@@ -23,11 +25,20 @@ void app_main(void)
 
     ESP_LOGI(TAG, "Initializing...");
 
-    err = nvs_flash_init();
-    if (err == ESP_ERR_NVS_NO_FREE_PAGES) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        err = nvs_flash_init();
-    }
+    // err = nvs_flash_init();
+    // if (err == ESP_ERR_NVS_NO_FREE_PAGES) {
+    //     ESP_ERROR_CHECK(nvs_flash_erase());
+    //     err = nvs_flash_init();
+    // }
+    // ESP_ERROR_CHECK(err);
+
+    err = idf_feature_init_nvs();
+    ESP_ERROR_CHECK(err);
+
+    err = idf_feature_init_os();
+    ESP_ERROR_CHECK(err);
+
+    err = idf_feature_init_net();
     ESP_ERROR_CHECK(err);
 
     err = bluetooth_init();
@@ -43,6 +54,7 @@ void app_main(void)
     }
 
     wifi_init();
+    tcp_server_start();
 
     xTaskCreate(status_changed_cb,
                 "status_change",
