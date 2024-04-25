@@ -11,6 +11,8 @@
 
 #define TAG "WIFI_C"
 #define WIFI_STORE_NAMESPACE_NAME "wifi"
+#define DEFINE_SSID         "Redmi_91AE"
+#define DEFINE_PASSWORD     "13503408891"
 
 typedef enum
 {
@@ -24,8 +26,6 @@ static bool reconnect = true;
 
 const int CONNECTED_BIT = BIT0;
 const int DISCONNECTED_BIT = BIT1;
-static const char *ap_ssid = "Redmi_91AE";
-static const char *ap_pass = "13503408891";
 
 nvs_handle_t wifi_store_handle;
 
@@ -60,7 +60,7 @@ static void store_wifi_data(const char *ssid,
     }
 }
 
-static void get_wifi_data(nvs_key_t key, char *out_val, uint16_t *val_len)
+static void get_wifi_data(nvs_key_t key, char *out_val, size_t *val_len)
 {
     esp_err_t err = nvs_open(WIFI_STORE_NAMESPACE_NAME, NVS_READONLY, &wifi_store_handle);
     if (err != ESP_OK)
@@ -73,12 +73,12 @@ static void get_wifi_data(nvs_key_t key, char *out_val, uint16_t *val_len)
         {
             case KEY_SSID:
                 err = nvs_get_u16(wifi_store_handle, "ssid_len", val_len);
-                out_val = malloc(val_len+1);
+                out_val = malloc((*val_len)+1);
                 err = nvs_get_blob(wifi_store_handle, "ssid", out_val, val_len);
                 break;
             case KEY_PASS:
             err = nvs_get_u16(wifi_store_handle, "pass_len", val_len);
-                out_val = malloc(val_len+1);
+                out_val = malloc((*val_len)+1);
                 err = nvs_get_blob(wifi_store_handle, "pass", out_val, val_len);
                 break;
             default :
@@ -191,5 +191,5 @@ void wifi_init(void)
     ESP_ERROR_CHECK(esp_wifi_start());
     initialized = true;
 
-    wifi_connect_to_ap(ap_ssid, ap_pass);
+    wifi_connect_to_ap(DEFINE_SSID, DEFINE_PASSWORD);
 }
