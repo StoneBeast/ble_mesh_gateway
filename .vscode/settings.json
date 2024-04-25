@@ -42,6 +42,8 @@
         "esp_bt_device.h": "c",
         "esp_netif.h": "c",
         "wifi.h": "c",
-        "esp_wifi.h": "c"
+        "esp_wifi.h": "c",
+        "tcp_server.h": "c",
+        "esp_bit_defs.h": "c"
     }
 }

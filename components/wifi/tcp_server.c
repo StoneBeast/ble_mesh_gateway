@@ -11,6 +11,8 @@
 #include "lwip/sys.h"
 #include <lwip/netdb.h>
 
+#include "tcp_server.h"
+
 #define PORT 5001
 #define KEEPALIVE_IDLE 5
 #define KEEPALIVE_INTERVAL 5
@@ -59,8 +61,10 @@ static void tcp_server_task(void *pvParameters)
 {
     ESP_LOGI(TAG, "tcp server task start");
 
+    wifi_config_type type = (wifi_config_type) pvParameters;
+
     char addr_str[128];
-    int addr_family = (int)pvParameters;
+    int addr_family = AF_INET;
     int ip_protocol = 0;
     int keepAlive = 1;
     int keepIdle = KEEPALIVE_IDLE;
@@ -142,7 +146,7 @@ CLEAN_UP:
     vTaskDelete(NULL);
 }
 
-void tcp_server_start(void)
+void tcp_server_start(wifi_config_type type)
 {
-    xTaskCreate(tcp_server_task, "tcp_server", 4096, (void *)AF_INET, 5, NULL);
+    xTaskCreate(tcp_server_task, "tcp_server", 4096, (void *)type, 5, NULL);
 }

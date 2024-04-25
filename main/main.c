@@ -46,7 +46,6 @@ void app_main(void)
     }
 
     wifi_init();
-    tcp_server_start();
 
     xTaskCreate(status_changed_cb,
                 "status_change",
