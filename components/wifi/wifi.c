@@ -69,15 +69,16 @@ static void get_wifi_data(nvs_key_t key, char *out_val, size_t *val_len)
     }
     else
     {
+        *val_len = 0;
         switch (key)
         {
             case KEY_SSID:
-                err = nvs_get_u16(wifi_store_handle, "ssid_len", val_len);
+                err = nvs_get_u16(wifi_store_handle, "ssid_len", (uint16_t*)val_len);
                 out_val = malloc((*val_len)+1);
                 err = nvs_get_blob(wifi_store_handle, "ssid", out_val, val_len);
                 break;
             case KEY_PASS:
-            err = nvs_get_u16(wifi_store_handle, "pass_len", val_len);
+            err = nvs_get_u16(wifi_store_handle, "pass_len", (uint16_t *)val_len);
                 out_val = malloc((*val_len)+1);
                 err = nvs_get_blob(wifi_store_handle, "pass", out_val, val_len);
                 break;
