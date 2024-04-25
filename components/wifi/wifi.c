@@ -6,6 +6,17 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
 #include "esp_wifi.h"
+#include "nvs_flash.h"
+#include "nvs.h"
+
+#define TAG "WIFI_C"
+#define WIFI_STORE_NAMESPACE_NAME "wifi"
+
+typedef enum
+{
+    KEY_SSID,
+    KEY_PASS
+} nvs_key_t;
 
 static EventGroupHandle_t wifi_event_group;
 static esp_netif_t *sta_netif = NULL;
@@ -13,9 +24,71 @@ static bool reconnect = true;
 
 const int CONNECTED_BIT = BIT0;
 const int DISCONNECTED_BIT = BIT1;
-static const char *TAG = "_WIFI_C_";
 static const char *ap_ssid = "Redmi_91AE";
 static const char *ap_pass = "13503408891";
+
+nvs_handle_t wifi_store_handle;
+
+static void store_wifi_data(const char *ssid, 
+                            uint16_t ssid_len, 
+                            const char *pass, 
+                            uint16_t pass_len)
+{
+    esp_err_t err = nvs_open(WIFI_STORE_NAMESPACE_NAME, NVS_READWRITE, &wifi_store_handle);
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Error (%s) opening NVS handle!\n", esp_err_to_name(err));
+    }
+    else
+    {
+        err = nvs_set_blob(wifi_store_handle, "ssid", ssid, (size_t) ssid_len);
+        ESP_LOGI(TAG, "save ssid %s", (err != ESP_OK) ? "Failed!\n" : "Done\n");
+
+        err = nvs_set_u16(wifi_store_handle, "ssid_len", ssid_len);
+        ESP_LOGI(TAG, "save ssid_len %s", (err != ESP_OK) ? "Failed!\n" : "Done\n");
+
+        err = nvs_set_blob(wifi_store_handle, "pass", pass, (size_t) pass_len);
+        ESP_LOGI(TAG, "save pass %s", (err != ESP_OK) ? "Failed!\n" : "Done\n");
+
+        err = nvs_set_u16(wifi_store_handle, "pass_len", pass_len);
+        ESP_LOGI(TAG, "save pass_len %s", (err != ESP_OK) ? "Failed!\n" : "Done\n");
+
+        err = nvs_commit(wifi_store_handle);
+
+        // Close
+        nvs_close(wifi_store_handle);
+    }
+}
+
+static void get_wifi_data(nvs_key_t key, char *out_val, uint16_t *val_len)
+{
+    esp_err_t err = nvs_open(WIFI_STORE_NAMESPACE_NAME, NVS_READONLY, &wifi_store_handle);
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Error (%s) opening NVS handle!\n", esp_err_to_name(err));
+    }
+    else
+    {
+        switch (key)
+        {
+            case KEY_SSID:
+                err = nvs_get_u16(wifi_store_handle, "ssid_len", val_len);
+                out_val = malloc(val_len+1);
+                err = nvs_get_blob(wifi_store_handle, "ssid", out_val, val_len);
+                break;
+            case KEY_PASS:
+            err = nvs_get_u16(wifi_store_handle, "pass_len", val_len);
+                out_val = malloc(val_len+1);
+                err = nvs_get_blob(wifi_store_handle, "pass", out_val, val_len);
+                break;
+            default :
+                break;
+        }
+
+        out_val[*val_len] = '\0';
+    }
+
+}
 
 static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                                int32_t event_id, void *event_data)

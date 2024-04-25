@@ -41,6 +41,7 @@
         "string.h": "c",
         "esp_bt_device.h": "c",
         "esp_netif.h": "c",
-        "wifi.h": "c"
+        "wifi.h": "c",
+        "esp_wifi.h": "c"
     }
 }
