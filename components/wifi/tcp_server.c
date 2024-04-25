@@ -12,6 +12,7 @@
 #include <lwip/netdb.h>
 
 #include "tcp_server.h"
+#include "command_tools.h"
 
 #define PORT 5001
 #define KEEPALIVE_IDLE 5
@@ -38,7 +39,18 @@ static void do_retransmit(const int sock)
         }
         else
         {
-            rx_buffer[len] = 0; // Null-terminate whatever is received and treat it like a string
+            rx_buffer[len] = 0;
+            if (is_command(rx_buffer, len) == true)
+            {
+                //  是tcp at 命令
+                //  handler command
+            }
+            else
+            {
+                //  不是tcp at 命令
+                //  other
+            }
+
             ESP_LOGI(TAG, "Received %d bytes: %s", len, rx_buffer);
 
             int to_write = len;
