@@ -13,6 +13,7 @@
 
 #include "tcp_server.h"
 #include "command_tools.h"
+#include "wifi.h"
 
 #define PORT 5001
 #define KEEPALIVE_IDLE 5
@@ -21,7 +22,42 @@
 
 static const char *TAG = "TCP_SERVER_C";
 
-static void do_retransmit(const int sock)
+static void tcp_at_command_handler(const char *command, 
+                                   uint16_t command_len,
+                                   tcp_server_type type)
+{
+    char *temp_command = (char *)malloc(command_len + 1);
+    strcpy(temp_command, command);
+
+    switch (get_command(temp_command, command_len, type))
+    {
+    case TCP_AT_NOT_DEFFINE:
+        ESP_LOGE("COMMAND_HANDLER", "command not define");
+        break;
+    case TCP_AT_SET_STA:
+        /*
+            tcp_at+set_sta=ssid,pass\r\n
+        */
+        char *ssid = NULL;
+        char *pass = NULL;
+        ssid = (strchr(temp_command, '=') + 1);
+        pass = (strchr(temp_command, ',') + 1);
+
+        *(pass-1) = '\0';
+        *(strchr(pass, '\r')) = '\0';
+
+        store_wifi_data(ssid, strlen(ssid), pass, strlen(pass));
+        ESP_LOGW("COMMAND_HANDLER", "info saved, restart...");
+        esp_restart();
+
+        break;
+    default:
+        break;
+    }
+
+}
+
+    static void do_retransmit(const int sock, tcp_server_type type)
 {
     int len;
     char rx_buffer[128];
@@ -44,6 +80,10 @@ static void do_retransmit(const int sock)
             {
                 //  是tcp at 命令
                 //  handler command
+                char *p_command = rx_buffer+TCP_AT_COMMAND_PREFIX_LEN;
+                int command_len = len - TCP_AT_COMMAND_PREFIX_LEN;
+
+                tcp_at_command_handler(p_command, command_len, type);
             }
             else
             {
@@ -147,7 +187,7 @@ static void tcp_server_task(void *pvParameters)
         }
         ESP_LOGI(TAG, "Socket accepted ip address: %s", addr_str);
 
-        do_retransmit(sock);
+        do_retransmit(sock, type);
 
         shutdown(sock, 0);
         close(sock);

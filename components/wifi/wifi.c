@@ -54,10 +54,10 @@ const int DISCONNECTED_BIT = BIT1;
 
 nvs_handle_t wifi_store_handle;
 
-static void store_wifi_data(const char *ssid, 
-                            uint16_t ssid_len, 
-                            const char *pass, 
-                            uint16_t pass_len)
+void store_wifi_data(const char *ssid, 
+                     uint16_t ssid_len, 
+                     const char *pass, 
+                     uint16_t pass_len)
 {
     esp_err_t err = nvs_open(WIFI_STORE_NAMESPACE_NAME, NVS_READWRITE, &wifi_store_handle);
     if (err != ESP_OK)
@@ -179,14 +179,14 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
         break;
     case WIFI_EVENT_AP_START:
         ESP_LOGI(TAG, "soft-ap start");
-        current_type = TCP_SERVER_AP_TYPE;
-        tcp_server_start(current_type);
         break;
     case WIFI_EVENT_AP_STOP:
         ESP_LOGI(TAG, "soft-ap stop");
         break;
     case WIFI_EVENT_AP_STACONNECTED:
         ESP_LOGI(TAG, "a sta connect to soft-ap");
+        current_type = TCP_SERVER_AP_TYPE;
+        tcp_server_start(current_type);
         break;
     case WIFI_EVENT_AP_STADISCONNECTED:
         ESP_LOGI(TAG, "a sta disconnect to soft-ap");
@@ -246,7 +246,22 @@ static bool wifi_connect_to_ap(const char *ssid, const char *pass)
 
 static void wifi_open_ap(void)
 {
-    wifi_config_t wifi_config = {0};
+
+    wifi_config_t wifi_config = {
+        .ap = {
+            .ssid = DEFAULT_SSID,
+            .ssid_len = strlen(DEFAULT_SSID),
+            .channel = 1,
+            .password = DEFAULT_PASSWORD,
+            .max_connection = 2,
+            .authmode = WIFI_AUTH_WPA2_PSK,
+            .pmf_cfg = {
+                .required = true,
+            },
+        },
+    };
+
+    // wifi_config_t wifi_config = {0};
 
     wifi_config.ap.authmode = WIFI_AUTH_WPA2_PSK;
     strlcpy((char *)wifi_config.ap.ssid, DEFAULT_SSID, sizeof(wifi_config.ap.ssid));
