@@ -1,4 +1,5 @@
 // TODO: 需要有连接失败的处理函数
+//  目前接入soft-ap的ip分配问题需要解决，且无法连接值tcpserver
 
 #include <string.h>
 
