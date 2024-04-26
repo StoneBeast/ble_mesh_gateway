@@ -73,7 +73,7 @@ static void tcp_server_task(void *pvParameters)
 {
     ESP_LOGI(TAG, "tcp server task start");
 
-    wifi_config_type type = (wifi_config_type) pvParameters;
+    tcp_server_type type = (tcp_server_type)pvParameters;
 
     char addr_str[128];
     int addr_family = AF_INET;
@@ -158,7 +158,7 @@ CLEAN_UP:
     vTaskDelete(NULL);
 }
 
-void tcp_server_start(wifi_config_type type)
+void tcp_server_start(tcp_server_type type)
 {
     xTaskCreate(tcp_server_task, "tcp_server", 4096, (void *)type, 5, NULL);
 }

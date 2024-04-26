@@ -44,6 +44,7 @@
         "wifi.h": "c",
         "esp_wifi.h": "c",
         "tcp_server.h": "c",
-        "esp_bit_defs.h": "c"
+        "esp_bit_defs.h": "c",
+        "command_tools.h": "c"
     }
 }

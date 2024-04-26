@@ -28,7 +28,6 @@ typedef enum
 }fail_type;
 
 static EventGroupHandle_t wifi_event_group;
-// static esp_netif_t *sta_netif = NULL;
 static bool reconnect = true;
 static uint8_t reconnect_count = 0;
 
@@ -45,7 +44,7 @@ static wifi_acc_t wifi_acc_info = {
     .ssid = {0},
     .ssid_len = 0,
 };
-static wifi_config_type current_type = DEFAULT_TYPE;
+static tcp_server_type current_type = TCP_SERVER_AP_TYPE;
 
 const int CONNECTED_BIT = BIT0;
 const int DISCONNECTED_BIT = BIT1;
@@ -127,7 +126,7 @@ static esp_err_t get_wifi_data(nvs_key_t key, char *out_val, size_t *val_len)
 static void connect_fail_handler(fail_type type)
 {
     reconnect = false;
-    reconnect = 0;
+    reconnect_count = 0;
 
     if (type == CONNECT_FAIL_TYPE_NO_INFO)
     {
@@ -135,7 +134,6 @@ static void connect_fail_handler(fail_type type)
     }
     else
     {
-        // ESP_LOGW("CONNECT_FAIL", "can't connect to '%s'", ssid);
         printf("CONNECT_FAIL, can't connect to '%s'\n", wifi_acc_info.ssid);
     }
     
@@ -162,30 +160,9 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
         {
             reconnect_count++;
 
-            if (reconnect_count == 2 && current_type == DEFAULT_TYPE)
+            if (reconnect_count == 2 )
             {
-                esp_err_t err = get_wifi_data(KEY_SSID, wifi_acc_info.ssid, &(wifi_acc_info.ssid_len));
-                err += get_wifi_data(KEY_PASS, wifi_acc_info.pass, &(wifi_acc_info.pass_len));
-                if (err != ESP_OK)
-                {
-                    connect_fail_handler(CONNECT_FAIL_TYPE_NO_INFO);
-                    break;
-                }
-
-                wifi_config_t wifi_config = {0};
-
-                memcpy(wifi_config.sta.ssid, wifi_acc_info.ssid, (wifi_acc_info.ssid_len)+1);
-                memcpy(wifi_config.sta.password, wifi_acc_info.pass, (wifi_acc_info.pass_len)+1);
-
-                ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
-
-                current_type = LAST_USE_TYPE;
-                reconnect_count = 0;
-            }
-            else if (reconnect_count == 2 && current_type == LAST_USE_TYPE)
-            {
-                connect_fail_handler(CONNECT_FAIL_TYPE_CANNT_CONNECT);
-                break;
+                connect_fail_handler(current_type);
             }
 
             ESP_LOGI(TAG, "sta disconnect, reconnect...");
@@ -200,6 +177,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
         break;
     case WIFI_EVENT_AP_START:
         ESP_LOGI(TAG, "soft-ap start");
+        current_type = TCP_SERVER_AP_TYPE;
         tcp_server_start(current_type);
         break;
     case WIFI_EVENT_AP_STOP:
@@ -286,8 +264,6 @@ void wifi_init(void)
     }
 
     wifi_event_group = xEventGroupCreate();
-    // sta_netif = esp_netif_create_default_wifi_sta();
-    // assert(sta_netif);
     ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL));
     ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &ip_event_handler, NULL));
 
@@ -295,8 +271,6 @@ void wifi_init(void)
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
     ESP_ERROR_CHECK(esp_wifi_set_ps(WIFI_PS_MIN_MODEM)); // must call this
     ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
-
-    // store_wifi_data("Redmi_91AE", 10, "13503408891", 11);
 
     esp_err_t err = get_wifi_data(KEY_SSID, wifi_acc_info.ssid, &(wifi_acc_info.ssid_len));
     if (err != ESP_OK)
