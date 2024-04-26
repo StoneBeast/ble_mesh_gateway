@@ -1,3 +1,5 @@
+// TODO: 需要有连接失败的处理函数
+
 #include <string.h>
 
 #include "wifi.h"
