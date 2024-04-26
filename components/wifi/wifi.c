@@ -28,7 +28,7 @@ typedef enum
 }fail_type;
 
 static EventGroupHandle_t wifi_event_group;
-static esp_netif_t *sta_netif = NULL;
+// static esp_netif_t *sta_netif = NULL;
 static bool reconnect = true;
 static uint8_t reconnect_count = 0;
 
@@ -49,6 +49,7 @@ static wifi_config_type current_type = DEFAULT_TYPE;
 
 const int CONNECTED_BIT = BIT0;
 const int DISCONNECTED_BIT = BIT1;
+// const int SET_TO_AP_MOD = BIT2;
 
 nvs_handle_t wifi_store_handle;
 
@@ -197,6 +198,19 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
         xEventGroupClearBits(wifi_event_group, CONNECTED_BIT);
         xEventGroupSetBits(wifi_event_group, DISCONNECTED_BIT);
         break;
+    case WIFI_EVENT_AP_START:
+        ESP_LOGI(TAG, "soft-ap start");
+        tcp_server_start(current_type);
+        break;
+    case WIFI_EVENT_AP_STOP:
+        ESP_LOGI(TAG, "soft-ap stop");
+        break;
+    case WIFI_EVENT_AP_STACONNECTED:
+        ESP_LOGI(TAG, "a sta connect to soft-ap");
+        break;
+    case WIFI_EVENT_AP_STADISCONNECTED:
+        ESP_LOGI(TAG, "a sta disconnect to soft-ap");
+        break;
     default:
         break;
     }
@@ -250,6 +264,17 @@ static bool wifi_connect_to_ap(const char *ssid, const char *pass)
     return true;
 }
 
+static void wifi_open_ap(void)
+{
+    wifi_config_t wifi_config = {0};
+
+    wifi_config.ap.authmode = WIFI_AUTH_WPA2_PSK;
+    strlcpy((char *)wifi_config.ap.ssid, DEFAULT_SSID, sizeof(wifi_config.ap.ssid));
+    strncpy((char *)wifi_config.ap.password, DEFAULT_PASSWORD, sizeof(wifi_config.ap.password));
+
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config));
+}
+
 void wifi_init(void)
 {
     esp_log_level_set("wifi", ESP_LOG_WARN);
@@ -261,8 +286,8 @@ void wifi_init(void)
     }
 
     wifi_event_group = xEventGroupCreate();
-    sta_netif = esp_netif_create_default_wifi_sta();
-    assert(sta_netif);
+    // sta_netif = esp_netif_create_default_wifi_sta();
+    // assert(sta_netif);
     ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL));
     ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &ip_event_handler, NULL));
 
@@ -270,11 +295,24 @@ void wifi_init(void)
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
     ESP_ERROR_CHECK(esp_wifi_set_ps(WIFI_PS_MIN_MODEM)); // must call this
     ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
-    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-    ESP_ERROR_CHECK(esp_wifi_start());
-    initialized = true;
 
     // store_wifi_data("Redmi_91AE", 10, "13503408891", 11);
 
-    wifi_connect_to_ap(DEFAULT_SSID, DEFAULT_PASSWORD);
+    esp_err_t err = get_wifi_data(KEY_SSID, wifi_acc_info.ssid, &(wifi_acc_info.ssid_len));
+    if (err != ESP_OK)
+    {
+        ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
+        initialized = true;
+        wifi_open_ap();
+        ESP_ERROR_CHECK(esp_wifi_start());
+    }
+    else 
+    {
+        err = get_wifi_data(KEY_PASS, wifi_acc_info.pass, &(wifi_acc_info.pass_len));
+        ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
+        ESP_ERROR_CHECK(esp_wifi_start());
+        initialized = true;
+        wifi_connect_to_ap(wifi_acc_info.ssid, wifi_acc_info.pass);
+    }
+
 }
