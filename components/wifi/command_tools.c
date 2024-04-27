@@ -2,6 +2,9 @@
 
 #include <string.h>
 
+/*
+    command format: tcp_at+<commadn>=[arg1][,arg2][,argn]$}\r\n
+*/
 bool is_command(char *command, uint16_t len)
 {
     if (len < TCP_AT_COMMAND_PREFIX_LEN)
@@ -9,7 +12,7 @@ bool is_command(char *command, uint16_t len)
         return false;
     }
 
-    if (memcmp(command, TCP_AT_COMMAND_PREFIX, TCP_AT_COMMAND_PREFIX_LEN) == 0)
+    if ((memcmp(command, TCP_AT_COMMAND_PREFIX, TCP_AT_COMMAND_PREFIX_LEN) == 0) && (strstr(command, "$}\r\n") != NULL))
     {
         return true;
     }
