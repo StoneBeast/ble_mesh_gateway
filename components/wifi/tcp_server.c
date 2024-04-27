@@ -57,6 +57,10 @@ static void tcp_at_command_handler(const char *command,
         esp_restart();
 
         break;
+    case TCP_AT_ENABLE_PROV:
+        break;
+    case TCP_AT_DISABLE_PROV:
+        break;
     default:
         break;
     }

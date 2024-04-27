@@ -36,16 +36,22 @@ tcp_command_t get_command(char *command, uint16_t len, tcp_server_type type)
 
     memcpy(temp_command, command, (size_t)command_str_len);
 
-    if (strncmp(temp_command, "set_sta", strlen(" set_sta ")) == 0)
+    if (strncmp(temp_command, "set_sta", strlen("set_sta")) == 0)
     {
         return TCP_AT_SET_STA;
     }
-    /*
-    else if (strncmp(temp_command, "examp", strlen("examp")) == 0 && type == TCP_AT_SET_STA)
+    else if (strncmp(temp_command, "enable_prov", strlen("enable_prov")) == 0 && type == TCP_AT_SET_STA)
     {
-
+        return TCP_AT_ENABLE_PROV;
     }
-    */
+    else if (strncmp(temp_command, "disable_prov", strlen("disable_prov")) == 0 && type == TCP_AT_SET_STA)
+    {
+        return TCP_AT_DISABLE_PROV;
+    }
+    else
+    {
+        return TCP_AT_NOT_DEFFINE;
+    }
 
         return TCP_AT_NOT_DEFFINE;
 }
