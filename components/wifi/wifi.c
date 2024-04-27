@@ -1,6 +1,3 @@
-// TODO: 需要有连接失败的处理函数
-//  目前接入soft-ap的ip分配问题需要解决，且无法连接值tcpserver
-
 #include <string.h>
 
 #include "wifi.h"
@@ -51,7 +48,6 @@ static tcp_server_type current_type = TCP_SERVER_AP_TYPE;
 
 const int CONNECTED_BIT = BIT0;
 const int DISCONNECTED_BIT = BIT1;
-// const int SET_TO_AP_MOD = BIT2;
 
 nvs_handle_t wifi_store_handle;
 
@@ -126,20 +122,40 @@ static esp_err_t get_wifi_data(nvs_key_t key, char *out_val, size_t *val_len)
 
 }
 
+static void wifi_open_ap(void)
+{
+
+    esp_netif_create_default_wifi_ap();
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
+    wifi_config_t wifi_config = {
+        .ap = {
+            .ssid_len = strlen(DEFAULT_SSID),
+            .channel = 1,
+            .max_connection = 2,
+            .pmf_cfg = {
+                .required = true,
+            },
+        },
+    };
+
+    // wifi_config_t wifi_config = {0};
+
+    wifi_config.ap.authmode = WIFI_AUTH_WPA2_PSK;
+    strlcpy((char *)wifi_config.ap.ssid, DEFAULT_SSID, sizeof(wifi_config.ap.ssid));
+    strncpy((char *)wifi_config.ap.password, DEFAULT_PASSWORD, sizeof(wifi_config.ap.password));
+
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config));
+}
+
 static void connect_fail_handler(fail_type type)
 {
     reconnect = false;
     reconnect_count = 0;
 
-    if (type == CONNECT_FAIL_TYPE_NO_INFO)
-    {
-        ESP_LOGW("CONNECT_FAIL", "no info, connect default wifi first");
-    }
-    else
-    {
-        printf("CONNECT_FAIL, can't connect to '%s'\n", wifi_acc_info.ssid);
-    }
-    
+    printf("CONNECT_FAIL, can't connect to '%s', pw: %s, gatway will be set ap mod.\n", wifi_acc_info.ssid, wifi_acc_info.pass);
+    current_type = TCP_SERVER_AP_TYPE;
+    wifi_open_ap();
+    tcp_server_start(current_type);
 }
 
 static void connect_success_handler(void)
@@ -157,23 +173,27 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
         break;
     case WIFI_EVENT_STA_CONNECTED:
         ESP_LOGI(TAG, "L2 connected");
+        connect_success_handler();
         break;
     case WIFI_EVENT_STA_DISCONNECTED:
         if (reconnect)
         {
-            reconnect_count++;
 
-            if (reconnect_count == 2 )
+            ESP_LOGI(TAG, "sta disconnect, reconnect...");
+
+            if (reconnect_count == 1)
             {
                 connect_fail_handler(current_type);
             }
-
-            ESP_LOGI(TAG, "sta disconnect, reconnect...");
-            esp_wifi_connect();
+            else
+            {
+                esp_wifi_connect();
+                reconnect_count++;
+            }
         }
         else
         {
-            ESP_LOGI(TAG, "sta disconnect");
+            connect_fail_handler(current_type);
         }
         xEventGroupClearBits(wifi_event_group, CONNECTED_BIT);
         xEventGroupSetBits(wifi_event_group, DISCONNECTED_BIT);
@@ -207,7 +227,6 @@ static void ip_event_handler(void *arg, esp_event_base_t event_base,
         xEventGroupClearBits(wifi_event_group, DISCONNECTED_BIT);
         xEventGroupSetBits(wifi_event_group, CONNECTED_BIT);
         ESP_LOGI(TAG, "got ip");
-        connect_success_handler();
         break;
     default:
         break;
@@ -238,37 +257,12 @@ static bool wifi_connect_to_ap(const char *ssid, const char *pass)
     reconnect = true;
     esp_wifi_disconnect();
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
+    ESP_LOGI("CONNECT_WIFI", "try to connect to %s, password: %s", wifi_config.sta.ssid, wifi_config.sta.password);
     esp_wifi_connect();
 
     xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT, 0, 1, 5000 / portTICK_PERIOD_MS);
 
     return true;
-}
-
-static void wifi_open_ap(void)
-{
-
-    wifi_config_t wifi_config = {
-        .ap = {
-            .ssid = DEFAULT_SSID,
-            .ssid_len = strlen(DEFAULT_SSID),
-            .channel = 1,
-            .password = DEFAULT_PASSWORD,
-            .max_connection = 2,
-            .authmode = WIFI_AUTH_WPA2_PSK,
-            .pmf_cfg = {
-                .required = true,
-            },
-        },
-    };
-
-    // wifi_config_t wifi_config = {0};
-
-    wifi_config.ap.authmode = WIFI_AUTH_WPA2_PSK;
-    strlcpy((char *)wifi_config.ap.ssid, DEFAULT_SSID, sizeof(wifi_config.ap.ssid));
-    strncpy((char *)wifi_config.ap.password, DEFAULT_PASSWORD, sizeof(wifi_config.ap.password));
-
-    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config));
 }
 
 void wifi_init(void)
@@ -288,19 +282,20 @@ void wifi_init(void)
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
     ESP_ERROR_CHECK(esp_wifi_set_ps(WIFI_PS_MIN_MODEM)); // must call this
-    ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
+    // ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
 
     esp_err_t err = get_wifi_data(KEY_SSID, wifi_acc_info.ssid, &(wifi_acc_info.ssid_len));
     if (err != ESP_OK)
     {
-        ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
         initialized = true;
-        wifi_open_ap();
+        ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
         ESP_ERROR_CHECK(esp_wifi_start());
+        wifi_open_ap();
     }
     else 
     {
         err = get_wifi_data(KEY_PASS, wifi_acc_info.pass, &(wifi_acc_info.pass_len));
+        esp_netif_create_default_wifi_sta();
         ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
         ESP_ERROR_CHECK(esp_wifi_start());
         initialized = true;

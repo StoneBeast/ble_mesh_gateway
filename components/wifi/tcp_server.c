@@ -36,15 +36,21 @@ static void tcp_at_command_handler(const char *command,
         break;
     case TCP_AT_SET_STA:
         /*
-            tcp_at+set_sta=ssid,pass\r\n
+            tcp_at+set_sta=ssid,pass$}\r\n
         */
         char *ssid = NULL;
         char *pass = NULL;
         ssid = (strchr(temp_command, '=') + 1);
         pass = (strchr(temp_command, ',') + 1);
 
+        ESP_LOGW("ID&SS", "ssid: %s, pass: %s", ssid, pass);
+
         *(pass-1) = '\0';
-        *(strchr(pass, '\r')) = '\0';
+        char *temp_end = (strchr(pass, '$'));
+        if (*(temp_end+1) == '}')
+        {
+            *temp_end = 0;
+        }
 
         store_wifi_data(ssid, strlen(ssid), pass, strlen(pass));
         ESP_LOGW("COMMAND_HANDLER", "info saved, restart...");
@@ -55,6 +61,7 @@ static void tcp_at_command_handler(const char *command,
         break;
     }
 
+    free(temp_command);
 }
 
     static void do_retransmit(const int sock, tcp_server_type type)
@@ -76,6 +83,7 @@ static void tcp_at_command_handler(const char *command,
         else
         {
             rx_buffer[len] = 0;
+            ESP_LOGI(TAG, "Received %d bytes: %s", len, rx_buffer);
             if (is_command(rx_buffer, len) == true)
             {
                 //  是tcp at 命令
@@ -90,8 +98,6 @@ static void tcp_at_command_handler(const char *command,
                 //  不是tcp at 命令
                 //  other
             }
-
-            ESP_LOGI(TAG, "Received %d bytes: %s", len, rx_buffer);
 
             int to_write = len;
             while (to_write > 0)
