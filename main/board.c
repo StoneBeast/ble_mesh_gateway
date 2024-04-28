@@ -44,7 +44,7 @@ void board_led_start(provisioner_status_t *status)
         case PROVISIONER_STATUS_PROVISIONING:
             gpio_set_level(LED_PIN, 1);
             led_level = 1;
-            vTaskDelay(pdMS_TO_TICKS(100));
+            vTaskDelay(pdMS_TO_TICKS(500));
             break;
         case PROVISIONER_STATUS_SCAN:
             gpio_set_level(LED_PIN, !led_level);

@@ -13,7 +13,7 @@
 
 #define TAG "MAIN_C"
 
-provisioner_status_t status = PROVISIONER_STATUS_NORMAL;
+provisioner_status_t provisioner_work_status = PROVISIONER_STATUS_NORMAL;
 
 void status_changed_cb(void *args);
 
@@ -50,7 +50,7 @@ void app_main(void)
     xTaskCreate(status_changed_cb,
                 "status_change",
                 4096,
-                &status,
+                &provisioner_work_status,
                 TASK_NORMAL_PRIORITY,
                 task_status_changed);
 }

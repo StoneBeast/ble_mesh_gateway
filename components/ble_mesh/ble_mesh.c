@@ -30,6 +30,8 @@ static uint8_t dev_uuid[DEV_UUID_LEN] = {0};
 static uint8_t match_data[MATCH_DATA_LEN] = {0xdd, 0xdd};
 static uint8_t device_identify_data[DEVICE_IDENTIFY_DATA_LEN] = {0x15, 0x93, 0x57, 0x66};
 
+extern provisioner_status_t provisioner_work_status;
+
 static esp_ble_mesh_cfg_srv_t config_server = {
     .relay = ESP_BLE_MESH_RELAY_DISABLED,
     .beacon = ESP_BLE_MESH_BEACON_ENABLED,
@@ -225,12 +227,15 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
     {
     case ESP_BLE_MESH_PROVISIONER_PROV_ENABLE_COMP_EVT:
         ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_PROV_ENABLE_COMP_EVT, err_code %d", param->provisioner_prov_enable_comp.err_code);
+        provisioner_work_status = PROVISIONER_STATUS_SCAN;
         break;
     case ESP_BLE_MESH_PROVISIONER_PROV_DISABLE_COMP_EVT:
         ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_PROV_DISABLE_COMP_EVT, err_code %d", param->provisioner_prov_disable_comp.err_code);
+        provisioner_work_status = PROVISIONER_STATUS_NORMAL;
         break;
     case ESP_BLE_MESH_PROVISIONER_RECV_UNPROV_ADV_PKT_EVT:
         ESP_LOGI(TAG, "ESP_BLE_MESH_PROVISIONER_RECV_UNPROV_ADV_PKT_EVT");
+        provisioner_work_status = PROVISIONER_STATUS_PROVISIONING;
         recv_unprov_adv_pkt(param->provisioner_recv_unprov_adv_pkt.dev_uuid, param->provisioner_recv_unprov_adv_pkt.addr,
                             param->provisioner_recv_unprov_adv_pkt.addr_type, param->provisioner_recv_unprov_adv_pkt.oob_info,
                             param->provisioner_recv_unprov_adv_pkt.adv_type, param->provisioner_recv_unprov_adv_pkt.bearer);
@@ -242,6 +247,7 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
         // prov_link_close(param->provisioner_prov_link_close.bearer, param->provisioner_prov_link_close.reason);
         break;
     case ESP_BLE_MESH_PROVISIONER_PROV_COMPLETE_EVT:
+        provisioner_work_status = PROVISIONER_STATUS_SCAN;
         prov_complete(param->provisioner_prov_complete.node_idx, param->provisioner_prov_complete.device_uuid,
                       param->provisioner_prov_complete.unicast_addr, param->provisioner_prov_complete.element_num,
                       param->provisioner_prov_complete.netkey_idx);
