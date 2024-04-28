@@ -30,4 +30,6 @@ esp_err_t bluetooth_init(void);
 
 esp_err_t ble_mesh_scanner_start(void);
 
+esp_err_t ble_mesh_scanner_stop(void);
+
 #endif

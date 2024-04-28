@@ -12,7 +12,8 @@ bool is_command(char *command, uint16_t len)
         return false;
     }
 
-    if ((memcmp(command, TCP_AT_COMMAND_PREFIX, TCP_AT_COMMAND_PREFIX_LEN) == 0) && (strstr(command, "$}\r\n") != NULL))
+    if ((memcmp(command, TCP_AT_COMMAND_PREFIX, TCP_AT_COMMAND_PREFIX_LEN) == 0))
+    // if ((memcmp(command, TCP_AT_COMMAND_PREFIX, TCP_AT_COMMAND_PREFIX_LEN) == 0) && (strstr(command, "$}\r\n") != NULL))
     {
         return true;
     }
@@ -38,20 +39,17 @@ tcp_command_t get_command(char *command, uint16_t len, tcp_server_type type)
 
     if (strncmp(temp_command, "set_sta", strlen("set_sta")) == 0)
     {
+        free(temp_command);
         return TCP_AT_SET_STA;
     }
-    else if (strncmp(temp_command, "enable_prov", strlen("enable_prov")) == 0 && type == TCP_AT_SET_STA)
+    else if (strncmp(temp_command, "set_prov", strlen("set_prov")) == 0 && type == TCP_SERVER_STA_TYPE)
     {
-        return TCP_AT_ENABLE_PROV;
-    }
-    else if (strncmp(temp_command, "disable_prov", strlen("disable_prov")) == 0 && type == TCP_AT_SET_STA)
-    {
-        return TCP_AT_DISABLE_PROV;
+        free(temp_command);
+        return TCP_AT_SET_PROV;
     }
     else
     {
+        free(temp_command);
         return TCP_AT_NOT_DEFFINE;
     }
-
-        return TCP_AT_NOT_DEFFINE;
 }

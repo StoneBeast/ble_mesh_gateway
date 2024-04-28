@@ -14,6 +14,7 @@
 #include "tcp_server.h"
 #include "command_tools.h"
 #include "wifi.h"
+#include "ble_mesh.h"
 
 #define PORT 5001
 #define KEEPALIVE_IDLE 5
@@ -27,6 +28,7 @@ static void tcp_at_command_handler(const char *command,
                                    tcp_server_type type)
 {
     char *temp_command = (char *)malloc(command_len + 1);
+    char *temp_end = NULL;
     strcpy(temp_command, command);
 
     switch (get_command(temp_command, command_len, type))
@@ -46,7 +48,7 @@ static void tcp_at_command_handler(const char *command,
         ESP_LOGW("ID&SS", "ssid: %s, pass: %s", ssid, pass);
 
         *(pass-1) = '\0';
-        char *temp_end = (strchr(pass, '$'));
+        temp_end = (strchr(pass, '$'));
         if (*(temp_end+1) == '}')
         {
             *temp_end = 0;
@@ -57,9 +59,25 @@ static void tcp_at_command_handler(const char *command,
         esp_restart();
 
         break;
-    case TCP_AT_ENABLE_PROV:
-        break;
-    case TCP_AT_DISABLE_PROV:
+    case TCP_AT_SET_PROV:
+        ESP_LOGI("TCP_SERVER", "command TCP_AT_SET_PROV");
+        char *prov_status = 1 + strchr(temp_command, '=');
+        temp_end = (strchr(temp_command, '$'));
+        if (*(temp_end + 1) == '}')
+        {
+            *temp_end = 0;
+        }
+
+        if (strcmp(prov_status, "1") == 0)
+        {
+            ESP_LOGI("TCP_COMMAND", "prov enable");
+            ble_mesh_scanner_start();
+        }
+        else if (strcmp(prov_status, "0") == 0)
+        {
+            ESP_LOGI("TCP_COMMAND", "prov disable");
+            ble_mesh_scanner_stop();
+        }
         break;
     default:
         break;

@@ -7,9 +7,16 @@
 typedef enum
 {
     TCP_AT_NOT_DEFFINE = 0,
+
+    /*
+        tcp_at+set_sta=<ssid>,<password>$}\r\n
+    */
     TCP_AT_SET_STA,
-    TCP_AT_ENABLE_PROV,
-    TCP_AT_DISABLE_PROV,
+
+    /*
+        tcp_at+set_prov=<status>$}\r\n
+    */
+    TCP_AT_SET_PROV,
 } tcp_command_t;
 
 #endif // _TCP_AT_COMMAND_DEF_H_

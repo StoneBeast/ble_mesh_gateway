@@ -575,6 +575,17 @@ esp_err_t ble_mesh_scanner_start(void)
     return 0;
 }
 
+esp_err_t ble_mesh_scanner_stop(void)
+{
+    esp_err_t err = esp_ble_mesh_provisioner_prov_disable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Failed to disable mesh provisioner (err %d)", err);
+        return err;
+    }
+    return 0;
+}
+
 esp_err_t ble_mesh_init(void)
 {
     esp_err_t err = ESP_OK;

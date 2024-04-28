@@ -160,6 +160,7 @@ static void connect_fail_handler(fail_type type)
 
 static void connect_success_handler(void)
 {
+    current_type = TCP_SERVER_STA_TYPE;
     tcp_server_start(current_type);
 }
 
