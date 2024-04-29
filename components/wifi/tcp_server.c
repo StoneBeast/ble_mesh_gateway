@@ -79,6 +79,20 @@ static void tcp_at_command_handler(const char *command,
             ble_mesh_scanner_stop();
         }
         break;
+    case TCP_AT_SET_SUBSC:
+        uint8_t *temp_sub_p = (uint8_t*)(1 + strchr(temp_command, '='));
+        uint16_t subscribe = *((uint16_t *) temp_sub_p);
+
+        temp_sub_p += 3;
+        uint16_t unicast = *((uint16_t *) temp_sub_p);
+        break;
+    case TCP_AT_DEL_SUBSC:
+        uint8_t *temp_sub_p = (uint8_t *)(1 + strchr(temp_command, '='));
+        uint16_t subscribe = *((uint16_t *)temp_sub_p);
+
+        temp_sub_p += 3;
+        uint16_t unicast = *((uint16_t *)temp_sub_p);
+        break;
     default:
         break;
     }

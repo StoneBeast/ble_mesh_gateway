@@ -47,6 +47,16 @@ tcp_command_t get_command(char *command, uint16_t len, tcp_server_type type)
         free(temp_command);
         return TCP_AT_SET_PROV;
     }
+    else if (strncmp(temp_command, "set_subaddr", strlen("set_subaddr")) == 0 && type == TCP_SERVER_STA_TYPE)
+    {
+        free(temp_command);
+        return TCP_AT_SET_SUBSC;
+    }
+    else if (strncmp(temp_command, "delete_subaddr", strlen("delete_subaddr")) == 0 && type == TCP_SERVER_STA_TYPE)
+    {
+        free(temp_command);
+        return TCP_AT_DEL_SUBSC;
+    }
     else
     {
         free(temp_command);

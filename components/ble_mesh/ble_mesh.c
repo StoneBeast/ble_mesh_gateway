@@ -103,47 +103,12 @@ static esp_ble_mesh_prov_t provision = {
     .iv_index = 0x00,
 };
 
-esp_err_t bluetooth_init(void)
-{
-    esp_err_t ret;
-
-    ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
-
-    esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
-    ret = esp_bt_controller_init(&bt_cfg);
-    if (ret)
-    {
-        ESP_LOGE(TAG, "%s initialize controller failed", __func__);
-        return ret;
-    }
-
-    ret = esp_bt_controller_enable(ESP_BT_MODE_BLE);
-    if (ret)
-    {
-        ESP_LOGE(TAG, "%s enable controller failed", __func__);
-        return ret;
-    }
-    ret = esp_bluedroid_init();
-    if (ret)
-    {
-        ESP_LOGE(TAG, "%s init bluetooth failed", __func__);
-        return ret;
-    }
-    ret = esp_bluedroid_enable();
-    if (ret)
-    {
-        ESP_LOGE(TAG, "%s enable bluetooth failed", __func__);
-        return ret;
-    }
-
-    return ret;
-}
-
 static esp_err_t example_ble_mesh_set_msg_common(esp_ble_mesh_client_common_param_t *common,
-                                                 dev_node_info_t *node,
+                                                 uint16_t unicast,
                                                  esp_ble_mesh_model_t *model, uint32_t opcode)
 {
-    if (!common || !node || !model) {
+    if (!common || !unicast || !model)
+    {
         return ESP_ERR_INVALID_ARG;
     }
 
@@ -151,7 +116,7 @@ static esp_err_t example_ble_mesh_set_msg_common(esp_ble_mesh_client_common_para
     common->model = model;
     common->ctx.net_idx = NET_INX;
     common->ctx.app_idx = get_app_key_node(app_key_list, 0)->app_idx;
-    common->ctx.addr = node->unicast;
+    common->ctx.addr = unicast;
     common->ctx.send_ttl = MSG_SEND_TTL;
     common->ctx.send_rel = MSG_SEND_REL;
     common->msg_timeout = MSG_TIMEOUT;
@@ -232,7 +197,7 @@ static esp_err_t prov_complete(int node_idx, const esp_ble_mesh_octet16_t uuid,
         return ESP_FAIL;
     }
 
-    example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_COMPOSITION_DATA_GET);
+    example_ble_mesh_set_msg_common(&common, node->unicast, config_client.model, ESP_BLE_MESH_MODEL_OP_COMPOSITION_DATA_GET);
     get_state.comp_data_get.page = COMP_DATA_PAGE_0;
     err = esp_ble_mesh_config_client_get_state(&common, &get_state);
     if (err) {
@@ -305,7 +270,7 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
             esp_err_t err = 0;
             get_app_key_node(app_key_list, 0)->app_idx = param->provisioner_add_app_key_comp.app_idx;
             err = esp_ble_mesh_provisioner_bind_app_key_to_local_model(PROV_OWN_ADDR, get_app_key_node(app_key_list, 0)->app_idx,
-                                                                       ESP_BLE_MESH_MODEL_ID_GEN_ONOFF_CLI, ESP_BLE_MESH_CID_NVAL);
+                                                                       ESP_BLE_MESH_VND_MODEL_ID_CLIENT, ESP_BLE_MESH_CID_NVAL);
             if (err != ESP_OK)
             {
                 ESP_LOGE(TAG, "Provisioner bind local model appkey failed");
@@ -361,7 +326,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
         {
             ESP_LOGI(TAG, "composition data %s", bt_hex(param->status_cb.comp_data_status.composition_data->data, param->status_cb.comp_data_status.composition_data->len));
             esp_ble_mesh_cfg_client_set_state_t set_state = {0};
-            example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD);
+            example_ble_mesh_set_msg_common(&common, node->unicast, config_client.model, ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD);
             set_state.app_key_add.net_idx = NET_INX;
             set_state.app_key_add.app_idx = get_app_key_node(app_key_list, 0)->app_idx;
             memcpy(set_state.app_key_add.app_key, get_app_key_node(app_key_list, 0)->app_key, 16);
@@ -383,7 +348,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
         case ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD:
         {
             esp_ble_mesh_cfg_client_set_state_t set_state = {0};
-            example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
+            example_ble_mesh_set_msg_common(&common, node->unicast, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
             set_state.model_app_bind.element_addr = node->unicast;
             set_state.model_app_bind.model_app_idx = get_app_key_node(app_key_list, 0)->app_idx;
             set_state.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_GEN_ONOFF_SRV;
@@ -431,7 +396,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
         case ESP_BLE_MESH_MODEL_OP_COMPOSITION_DATA_GET:
         {
             esp_ble_mesh_cfg_client_get_state_t get_state = {0};
-            example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_COMPOSITION_DATA_GET);
+            example_ble_mesh_set_msg_common(&common, node->unicast, config_client.model, ESP_BLE_MESH_MODEL_OP_COMPOSITION_DATA_GET);
             get_state.comp_data_get.page = COMP_DATA_PAGE_0;
             err = esp_ble_mesh_config_client_get_state(&common, &get_state);
             if (err)
@@ -444,7 +409,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
         case ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD:
         {
             esp_ble_mesh_cfg_client_set_state_t set_state = {0};
-            example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD);
+            example_ble_mesh_set_msg_common(&common, node->unicast, config_client.model, ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD);
             set_state.app_key_add.net_idx = NET_INX;
             set_state.app_key_add.app_idx = get_app_key_node(app_key_list, 0)->app_idx;
             memcpy(set_state.app_key_add.app_key, get_app_key_node(app_key_list, 0)->app_key, 16);
@@ -459,7 +424,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
         case ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND:
         {
             esp_ble_mesh_cfg_client_set_state_t set_state = {0};
-            example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
+            example_ble_mesh_set_msg_common(&common, node->unicast, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
             set_state.model_app_bind.element_addr = node->unicast;
             set_state.model_app_bind.model_app_idx = get_app_key_node(app_key_list, 0)->app_idx;
             set_state.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_GEN_ONOFF_SRV;
@@ -516,28 +481,6 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
     }
 }
 
-esp_err_t ble_mesh_scanner_start(void)
-{
-    esp_err_t err = esp_ble_mesh_provisioner_prov_enable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
-    if (err != ESP_OK)
-    {
-        ESP_LOGE(TAG, "Failed to enable mesh provisioner (err %d)", err);
-        return err;
-    }
-    return 0;
-}
-
-esp_err_t ble_mesh_scanner_stop(void)
-{
-    esp_err_t err = esp_ble_mesh_provisioner_prov_disable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
-    if (err != ESP_OK)
-    {
-        ESP_LOGE(TAG, "Failed to disable mesh provisioner (err %d)", err);
-        return err;
-    }
-    return 0;
-}
-
 esp_err_t ble_mesh_init(void)
 {
     esp_err_t err = ESP_OK;
@@ -581,3 +524,113 @@ esp_err_t ble_mesh_init(void)
 
     return err;
 }
+
+
+/********************************* ble_mesh_api start ***************************************/
+
+esp_err_t ble_mesh_scanner_start(void)
+{
+    esp_err_t err = esp_ble_mesh_provisioner_prov_enable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Failed to enable mesh provisioner (err %d)", err);
+        return err;
+    }
+    return 0;
+}
+
+esp_err_t ble_mesh_scanner_stop(void)
+{
+    esp_err_t err = esp_ble_mesh_provisioner_prov_disable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Failed to disable mesh provisioner (err %d)", err);
+        return err;
+    }
+    return 0;
+}
+
+esp_err_t bluetooth_init(void)
+{
+    esp_err_t ret;
+
+    ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
+
+    esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
+    ret = esp_bt_controller_init(&bt_cfg);
+    if (ret)
+    {
+        ESP_LOGE(TAG, "%s initialize controller failed", __func__);
+        return ret;
+    }
+
+    ret = esp_bt_controller_enable(ESP_BT_MODE_BLE);
+    if (ret)
+    {
+        ESP_LOGE(TAG, "%s enable controller failed", __func__);
+        return ret;
+    }
+    ret = esp_bluedroid_init();
+    if (ret)
+    {
+        ESP_LOGE(TAG, "%s init bluetooth failed", __func__);
+        return ret;
+    }
+    ret = esp_bluedroid_enable();
+    if (ret)
+    {
+        ESP_LOGE(TAG, "%s enable bluetooth failed", __func__);
+        return ret;
+    }
+
+    return ret;
+}
+
+esp_err_t ble_mesh_sub_set(bool is_add, uint16_t subaddr,uint16_t unicast)
+{
+    /*
+    uint16_t element_addr
+    uint16_t sub_addr;
+    uint16_t model_id;
+    uint16_t company_id;
+    */
+
+    esp_ble_mesh_client_common_param_t common = {0};
+    esp_ble_mesh_cfg_client_set_state_t model_sub_add = {0};
+    example_ble_mesh_set_msg_common(
+                                    &common,
+                                    unicast,
+                                    config_client.model,
+                            is_add == true ? 
+                                         ESP_BLE_MESH_MODEL_OP_MODEL_SUB_ADD : 
+                                         ESP_BLE_MESH_MODEL_OP_MODEL_SUB_DELETE);
+    if (is_add == true)
+    {
+        model_sub_add.model_sub_add.company_id = CID_STONE;
+        model_sub_add.model_sub_add.element_addr = unicast;
+        model_sub_add.model_sub_add.model_id = ESP_BLE_MESH_VND_MODEL_ID_SERVER;
+        model_sub_add.model_sub_add.sub_addr = subaddr;
+    }                                
+    else
+    {
+        model_sub_add.model_sub_delete.company_id = CID_STONE;
+        model_sub_add.model_sub_delete.element_addr = unicast;
+        model_sub_add.model_sub_delete.model_id = ESP_BLE_MESH_VND_MODEL_ID_SERVER;
+        model_sub_add.model_sub_delete.sub_addr = subaddr;
+    }
+    esp_err_t err = esp_ble_mesh_config_client_set_state(&common, &model_sub_add);
+    if (err)
+    {
+        ESP_LOGE(TAG, "%s: Config change subscribe addr failed", __func__);
+        return;
+    }
+
+    return err;
+}
+
+esp_err_t ble_mesh_del_sub(uint16_t subaddr, uint16_t unicast)
+{
+
+}
+
+/********************************* ble_mesh_api end   ***************************************/

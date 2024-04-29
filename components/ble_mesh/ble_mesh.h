@@ -32,4 +32,6 @@ esp_err_t ble_mesh_scanner_start(void);
 
 esp_err_t ble_mesh_scanner_stop(void);
 
+esp_err_t ble_mesh_sub_set(bool is_add, uint16_t subaddr, uint16_t unicast);
+
 #endif
