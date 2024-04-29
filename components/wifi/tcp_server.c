@@ -29,6 +29,10 @@ static void tcp_at_command_handler(const char *command,
 {
     char *temp_command = (char *)malloc(command_len + 1);
     char *temp_end = NULL;
+    uint16_t unicast;
+    uint8_t *temp_sub_p;
+    uint16_t subscribe ;
+
     strcpy(temp_command, command);
 
     switch (get_command(temp_command, command_len, type))
@@ -80,18 +84,22 @@ static void tcp_at_command_handler(const char *command,
         }
         break;
     case TCP_AT_SET_SUBSC:
-        uint8_t *temp_sub_p = (uint8_t*)(1 + strchr(temp_command, '='));
-        uint16_t subscribe = *((uint16_t *) temp_sub_p);
+        temp_sub_p = (uint8_t*)(1 + strchr(temp_command, '='));
+        subscribe = *((uint16_t *) temp_sub_p);
 
         temp_sub_p += 3;
-        uint16_t unicast = *((uint16_t *) temp_sub_p);
+        unicast = *((uint16_t *) temp_sub_p);
+
+        ble_mesh_sub_set(true, subscribe, unicast);
         break;
     case TCP_AT_DEL_SUBSC:
-        uint8_t *temp_sub_p = (uint8_t *)(1 + strchr(temp_command, '='));
-        uint16_t subscribe = *((uint16_t *)temp_sub_p);
+        temp_sub_p = (uint8_t *)(1 + strchr(temp_command, '='));
+        subscribe = *((uint16_t *)temp_sub_p);
 
         temp_sub_p += 3;
-        uint16_t unicast = *((uint16_t *)temp_sub_p);
+        unicast = *((uint16_t *)temp_sub_p);
+
+        ble_mesh_sub_set(false, subscribe, unicast);
         break;
     default:
         break;

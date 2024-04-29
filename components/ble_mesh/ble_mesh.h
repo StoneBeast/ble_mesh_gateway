@@ -12,12 +12,19 @@ typedef struct app_key_node
     uint8_t app_key[APP_KEY_LEN];
 } app_key_t;
 
+typedef struct
+{
+    uint16_t data;
+    uint16_t data_info;
+}dev_data_info_t;
+
 typedef struct dev_node_info_node
 {
     uint8_t uuid[16];
     uint16_t unicast;
-    uint8_t elem_num;
-    uint8_t data;
+    uint8_t feature_num;
+    uint16_t type_id;
+    dev_data_info_t *data;
 } dev_node_info_t;
 
 void ble_mesh_get_dev_uuid(uint8_t *dev_uuid,

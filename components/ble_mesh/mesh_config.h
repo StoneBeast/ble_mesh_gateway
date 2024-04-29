@@ -1,8 +1,6 @@
 #ifndef _MESH_CONFIG_H_
 #define _MESH_CONFIG_H_
 
-#define NET_INX ESP_BLE_MESH_KEY_PRIMARY
-
 #define MSG_SEND_TTL             3
 #define MSG_SEND_REL             false
 #define MSG_TIMEOUT              0
@@ -15,6 +13,10 @@
 
 #define APP_INDEX_0 0x0000
 #define APP_KEY_0 "stoneBeastkey001"
+
+#define NET_INX_0 ESP_BLE_MESH_KEY_PRIMARY
+#define NET_INX_1 0x0001
+#define NET_KEY_1 "stoneBeastNetKey" 
 
 #define CID_STONE 0x9942
 #define ESP_BLE_MESH_VND_MODEL_ID_CLIENT 0x0000

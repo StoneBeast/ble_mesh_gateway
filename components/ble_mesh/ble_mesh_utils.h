@@ -26,9 +26,7 @@ app_key_t *get_app_key_node(app_key_manager_handle_t manager, uint16_t index);
 
 void add_dev_node_info(dev_node_manager_handle_t manager,
                        const uint8_t uuid[DEV_UUID_LEN],
-                       uint16_t unicast,
-                       uint8_t elem_num,
-                       uint8_t data);
+                       uint16_t unicast);
 
 dev_node_manager_handle_t dev_node_info_manager_get(void);
 
