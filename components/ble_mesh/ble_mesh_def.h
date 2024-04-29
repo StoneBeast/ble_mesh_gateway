@@ -1,0 +1,12 @@
+#ifndef _BLE_MESH_DEF_H_
+#define _BLE_MESH_DEF_H_
+
+#include "esp_ble_mesh_defs.h"
+#include "mesh_config.h"
+
+#define MESH_STONE_VND_MODEL_OP_GET_DEVICE_INFO     ESP_BLE_MESH_MODEL_OP_3(0x00, CID_STONE)
+#define MESH_STONE_VND_MODEL_OP_GET_VALUE           ESP_BLE_MESH_MODEL_OP_3(0x01, CID_STONE)
+#define MESH_STONE_VND_MODEL_OP_SET_VALUE           ESP_BLE_MESH_MODEL_OP_3(0x02, CID_STONE)
+#define MESH_STONE_VND_MODEL_OP_RCV_DATA            ESP_BLE_MESH_MODEL_OP_3(0x0F, CID_STONE)
+
+#endif
